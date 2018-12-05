@@ -1,0 +1,88 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+    <pluginGroups></pluginGroups>
+    <proxies></proxies>
+    <localRepository>d:/repository</localRepository>
+
+    <!--设置私库认证信息-->
+    <servers>
+        <server>
+            <id>nexus-releases</id>
+            <username>admin</username>
+            <password>admin123</password>
+        </server>
+        <server>
+            <id>nexus-snapshots</id>
+            <username>admin</username>
+            <password>admin123</password>
+        </server>
+        <server>
+            <id>tomcat7</id>
+            <username>tomcat</username>
+            <password>tomcat</password>
+        </server>
+    </servers>
+
+    <!--设置私库mirror 表示maven所有的请求都由nexus来处理-->
+    <mirrors>
+        <mirror>
+            <id>nexus</id>
+            <mirrorOf>*</mirrorOf>
+            <name>Nexus Mirror.</name>
+            <url>http://localhost:8081/nexus/content/groups/public</url>
+        </mirror>
+    </mirrors>
+
+    <!--设置maven私库信息-->
+    <profiles>
+        <profile>
+            <id>nexus</id>
+            <repositories>
+                <repository>
+                    <id>nexus</id>
+                    <name>Nexus</name>
+                    <url>http://localhost:8081/nexus/content/groups/public/</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>nexus</id>
+                    <name>Nexus</name>
+                    <url>http://localhost:8081/nexus/content/groups/public/</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+        <!--覆盖maven中央仓库设置开启releases和snapshots版本的下载-->
+        <profile>
+            <id>central</id>
+            <repositories>
+                <repository>
+                    <id>nexus</id>
+                    <url>http://nexus</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>nexus-snapshots</id>
+                    <url>http://nexus-snapshots</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
+    <!--激活私库信息的配置-->
+    <activeProfiles>
+        <activeProfile>nexus</activeProfile>
+        <activeProfile>central</activeProfile>
+    </activeProfiles>
+</settings>

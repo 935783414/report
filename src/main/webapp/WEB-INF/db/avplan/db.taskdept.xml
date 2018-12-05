@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<config>
+	<!-- 将该配置文件放到WEB-INF\db\avplan下 -->
+	<!-- 该配置文件为操作数据库sql语句定义，id为调用标识 -->
+	<!-- DSG_brp替换成自己配置的数据库组 -->
+	<!-- 
+	startup.Config.xml中添加
+	<item> 
+				<value>db/avplan/db.designInquery.xml</value>
+	</item>
+	-->
+	<import name="sqls"            class="java.util.ArrayList" />
+	<import name="sql"             class="org.hy.common.xml.XSQL" />
+    <import name="sqlGroup"        class="org.hy.common.xml.plugins.XSQLGroup" />
+
+
+    <!--  avplan-AVPLAN系统业务阶段查询接口模块的相关SQL -->
+	<sqls>
+	
+		<sql id="XSQL_taskreport_queryDepts">
+
+			<dataSourceGroup ref="DSG_avplan" />
+
+			<content>
+				<![CDATA[
+				select
+                   OWNERNAME
+               from AP_PLAN_TASK 
+               where  1=1
+					 group by OWNERNAME
+				]]>
+			</content>
+
+			<result>
+				<row>com.fms.avplan.deptExamReport.report.TaskDept</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+		</sql>
+			
+	 <sql id="XSQL_taskreport_reportDateList">
+
+			<dataSourceGroup ref="DSG_avplan" />
+
+			<content>
+				<![CDATA[
+				select
+                   LONGTODATEADD1(t.PLANSTARTTIME) reportdate
+               from AP_PLAN_TASK t
+               where  1=1
+              GROUP BY PLANFINISHTIME
+			  ORDER BY PLANFINISHTIME desc
+
+				]]>
+			</content>
+
+			<result>
+				<row>com.fms.avplan.deptExamReport.report.TaskDept</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+		</sql>
+		
+		  <sql id="XSQL_taskreport_deptexamList">
+
+            <dataSourceGroup ref="DSG_avplan" />
+            <content>
+                <![CDATA[
+					select 
+					 orderno||'/'||name  as ordernoname,				
+					to_date(PLANFINISHTIME,'yyyy-mm-dd')-to_date(ACTUALFINISHTIME,'yyyy-mm-dd') as overtime,
+					(to_date(PLANFINISHTIME,'yyyy-mm-dd')-to_date(PLANSTARTTIME,'yyyy-mm-dd'))-(to_date(ACTUALFINISHTIME,'yyyy-mm-dd')-to_date(ACTUALSTARTTIME,'yyyy-mm-dd')) as acttimeout,
+					orderno,name,OWNERNAME,PLANSTARTTIME,PLANFINISHTIME,DURATION,ACTUALSTARTTIME,
+					ACTUALFINISHTIME,ACTUALDURATION
+					 from(
+                       select            
+                              p.orderno,          
+                              t.name,                 
+                               t.OWNERNAME,              
+                               LONGTODATEADD1(t.PLANSTARTTIME) PLANSTARTTIME,           
+                               LONGTODATEADD1(t.PLANFINISHTIME) PLANFINISHTIME,        
+                               t.DURATION,                   
+                               LONGTODATEADD1(t.ACTUALSTARTTIME) ACTUALSTARTTIME,    
+                                LONGTODATEADD1(t.ACTUALFINISHTIME) ACTUALFINISHTIME,   
+                              t.ACTUALDURATION         
+                         from AP_PLAN_TASK t join ap_plan_project p         
+                  ON t.PROJIID = p.INNERID             
+                     and p.STATENAME = '已完成' 
+                      ) n where  1=1
+					  <[ AND  n.OWNERNAME = ':OWNERNAME' ]>
+					  <[ AND n.PLANSTARTTIME >= ':PLANSTARTTIME' ]>
+					  <[ AND  n.orderno, = ':orderno' ]>
+					  <[ AND n.PLANFINISHTIME <= ':PLANFINISHTIME' ]>
+				]]>
+				ORDER BY PLANSTARTTIME
+            </content>
+    
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.TaskDept</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+        
+        	<sql id="XSQL_avplan_taskdelayList_design">
+
+			<dataSourceGroup ref="DSG_avplan" />         
+			<content>
+			 <![CDATA[
+					select orderno,name,OWNERNAME,PLANSTARTTIME,PLANFINISHTIME,DURATION,ACTUALSTARTTIME,
+					ACTUALFINISHTIME,ACTUALDURATION
+					 from(
+                       select            
+                              p.orderno,          
+                              t.name,                 
+                               t.OWNERNAME,              
+                               LONGTODATEADD1(t.PLANSTARTTIME) PLANSTARTTIME,           
+                               LONGTODATEADD1(t.PLANFINISHTIME) PLANFINISHTIME,        
+                               t.DURATION,                   
+                               LONGTODATEADD1(t.ACTUALSTARTTIME) ACTUALSTARTTIME,    
+                                LONGTODATEADD1(t.ACTUALFINISHTIME) ACTUALFINISHTIME,   
+                              t.ACTUALDURATION         
+                         from AP_PLAN_TASK t join ap_plan_project p         
+                  ON t.PROJIID = p.INNERID             
+                     and p.STATENAME = '已完成' 
+                      ) n where  1=1
+					  <[ AND  n.OWNERNAME = ':OWNERNAME' ]>
+					  <[ AND n.PLANSTARTTIME >= ':PLANSTARTTIME' ]>
+					  <[ AND  n.orderno, = ':orderno' ]>
+					  <[ AND n.PLANFINISHTIME <= ':PLANFINISHTIME' ]>
+				]]>
+				ORDER BY PLANSTARTTIME
+			</content>
+
+			<result>
+				<row>com.fms.avplan.deptExamReport.report.TaskDept</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+
+		</sql>
+		
+		<!-- 将结果保存到DEPT_EXAM_REPORT中-->
+		<sql id="XSQL_avplan_taskDEPT_EXAM_REPORT_insert">
+
+			<dataSourceGroup ref="DSG_avplan" />
+
+			<content>
+				<![CDATA[
+				INSERT INTO AP_PLAN_TASK (
+				   name,
+                   OWNERNAME,
+                   PLANSTARTTIME,
+                   PLANFINISHTIME,
+                   DURATION ,
+                   ACTUALSTARTTIME,
+                   ACTUALFINISHTIME,
+                   ACTUALDURATION
+					)
+					VALUES
+					(
+				    :innerid
+				   ,:name,
+                   ,:OWNERNAME,
+                   ,:PLANSTARTTIME,
+                   ,:PLANFINISHTIME,
+                   ,:DURATION ,
+                   ,:ACTUALSTARTTIME,
+                   ,:ACTUALFINISHTIME,
+                   ,:ACTUALDURATION
+								)
+
+
+
+				]]>
+			</content>
+
+			<result>
+				<row>com.fms.avplan.deptExamReport.report.TaskDept</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+
+		</sql>
+		<!-- 从报表服务器查询已经注明原因的报表-->
+		<sql id="XSQL_avplan_reportlist_taskDEPT_EXAM_REPORT">
+
+			<dataSourceGroup ref="DSG_avplan" />
+
+			<content>
+				 <![CDATA[
+					select orderno,name,OWNERNAME,PLANSTARTTIME,PLANFINISHTIME,DURATION,ACTUALSTARTTIME,
+					ACTUALFINISHTIME,ACTUALDURATION
+					 from(
+                       select            
+                              p.orderno,          
+                              t.name,                 
+                               t.OWNERNAME,              
+                               LONGTODATEADD1(t.PLANSTARTTIME) PLANSTARTTIME,           
+                               LONGTODATEADD1(t.PLANFINISHTIME) PLANFINISHTIME,        
+                               t.DURATION,                   
+                               LONGTODATEADD1(t.ACTUALSTARTTIME) ACTUALSTARTTIME,    
+                                LONGTODATEADD1(t.ACTUALFINISHTIME) ACTUALFINISHTIME,   
+                              t.ACTUALDURATION         
+                         from AP_PLAN_TASK t join ap_plan_project p         
+                  ON t.PROJIID = p.INNERID             
+                     and p.STATENAME = '已完成' 
+                      ) n where  1=1
+					 <[ AND  n.OWNERNAME = ':OWNERNAME' ]>
+					  <[ AND n.PLANSTARTTIME = ':PLANSTARTTIME' ]>
+					  <[ AND  n.orderno, = ':orderno' ]>
+				]]>
+				ORDER BY PLANSTARTTIME
+			</content>
+
+			<result>
+				<row>com.fms.avplan.deptExamReport.report.TaskDept</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+
+		</sql>
+
+		</sqls>
+		</config>

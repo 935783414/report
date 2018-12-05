@@ -1,0 +1,1194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+    <!-- 将该配置文件放到WEB-INF\db\avplan下 -->
+    <!-- 该配置文件为操作数据库sql语句定义，id为调用标识 -->
+    <!-- DSG_brp替换成自己配置的数据库组 -->
+    <!--
+    startup.Config.xml中添加
+    <item>
+                <value>db/avplan/db.designInquery.xml</value>
+    </item>
+    -->
+    <import name="sqls" class="java.util.ArrayList"/>
+    <import name="sql" class="org.hy.common.xml.XSQL"/>
+    <import name="sqlGroup" class="org.hy.common.xml.plugins.XSQLGroup"/>
+
+
+    <!--  avplan-AVPLAN系统业务阶段查询接口模块的相关SQL -->
+    <sqls>
+        <!-- 设计超期查询  left join (select * from ap_plan_special where depart_name<>'控制器件事业部') c on b.orderno= substr(c.orderno,0,8)-->
+        <sql id="XSQL_avplan_exam_delayList_design">
+
+            <dataSourceGroup ref="DSG_avplan"/>
+
+            <content>
+                <![CDATA[
+				SELECT t.*
+                  ,SYS_GUID() innerid
+                  ,TO_CHAR(sysdate,'yyyy-mm-dd hh24:mi:ss')  createtime
+                  ,TO_CHAR(sysdate,'YYYY"年"MM"月"DD"日"') reportdate
+                  ,'研发部' unitname
+                FROM
+                  (SELECT
+                     a.name,
+                     b.orderno,
+                     CAST('查看进度' as varchar(8)) as JD,
+                     c.specail_product_code            specailproductcode,
+                     c.orderno                         suborderno,
+                     c.productclass                    productclass,
+                     c.moduleseriescode                producttype,
+                     c.depart_name                     departname,
+                     Longtodateadd1(a.planstarttime)   planstarttime,
+                     Longtodateadd1(a.planfinishtime)  planfinishtime,
+                     c.finishpercentage,
+                     '截止' || to_char(sysdate,'yyyy-mm-dd') || '，超期'
+                            || ceil(To_date(to_char(sysdate,'yyyy-mm-dd') , 'yyyy-mm-dd') - To_date(Longtodateadd1(a.PLANFINISHTIME) , 'yyyy-mm-dd'))
+                            || '天'                 AS  reason,
+                     CASE
+                      WHEN c.FINISHPERCENTAGE < 100 AND a.PLANFINISHTIME < Datetolong(trunc(sysdate)+23/24) THEN '超时'
+                      WHEN c.FINISHPERCENTAGE < 100 AND a.PLANFINISHTIME >= Datetolong(trunc(sysdate))      THEN '进行中'
+                      WHEN c.FINISHPERCENTAGE = 100                                                         THEN '已完成'
+                      END                           AS flag,
+                     CASE
+                      WHEN a.childcount > 0 THEN '已下发 '
+                      ELSE '未下发'END              AS status
+                   FROM   AP_PLAN_TASK a
+                     INNER JOIN AP_PLAN_PROJECT b
+                       ON a.PROJIID = b.innerid
+                     LEFT JOIN (SELECT t1.orderno,
+                                  t1.specail_product_code,
+                                  t1.PRODUCTCLASS,
+                                  t1.MODULESERIESCODE,
+                                  t1.depart_name,
+                                  CASE
+                                  WHEN t1.PRODUCTCLASS = '阀体组件'
+                                       OR t1.PRODUCTCLASS = '执行机构' THEN '产品设计'
+                                  WHEN t1.PRODUCTCLASS = '附件电头' THEN '电动执行机构'
+                                  ELSE t1.PRODUCTCLASS
+                                  END                         type,
+                                  Nvl(t2.finishpercentage, 0) finishpercentage
+                                FROM   ap_plan_special t1
+                                  LEFT JOIN ap_plan_task t2
+                                    ON CONCAT(Substr(t2.name, 0, 10),Substr(t2.name, 12))=CONCAT(t1.orderno,t1.productclass)
+                                       AND Substr(t2.business_task_name, 0, 7) = 'I02@plm'
+                                WHERE  t1.depart_name <> '控制器件事业部'
+                               ) c
+                       ON b.orderno = Substr(c.orderno, 0, 8)
+                          AND c.type = a.name
+                   WHERE  a.name IN( '产品设计', '电动执行机构' )
+                          AND a.memo = 'special'
+                          AND a.planstarttime <   DATETOLONG(TRUNC((sysdate))+23.9998/24)
+                          AND ( a.planfinishtime >=  DATETOLONG(TRUNC(sysdate))
+                                OR a.finishpercentage < 100 )
+                          AND a.statename NOT IN( '已挂起', '编制中', '已取消' )
+                  ) t WHERE 1=1 AND flag='超时'
+                ORDER  BY FLAG, PLANFINISHTIME, orderno
+
+				]]>
+            </content>
+                <!--:isWarning -->
+                <!--:isOutTime-->
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+
+        <!-- 工艺超期查询  left join (select * from ap_plan_special where depart_name<>'控制器件事业部') c on b.orderno= substr(c.orderno,0,8)-->
+        <sql id="XSQL_avplan_exam_delayList_technics">
+
+            <dataSourceGroup ref="DSG_avplan"/>
+
+            <content>
+                <![CDATA[
+
+                    select t.*
+                      ,sys_guid() innerid
+                      ,to_char(sysdate,'yyyy-mm-dd hh24:mi:ss')  createtime
+                      ,to_char(sysdate,'YYYY"年"MM"月"DD"日"') reportdate
+                      ,'工艺部' unitname
+                    from(
+                          SELECT  distinct b.orderno  ,cast('查看进度' as varchar(8)) as JD,
+
+                                                       c.specail_product_code specailproductcode ,
+                                                       c.orderno suborderno ,
+                                                       c.PRODUCTCLASS productclass ,
+                                                       c.MODULESERIESCODE producttype ,
+                                                       c.depart_name departname ,
+                                                       longtodateadd1(a.PLANSTARTTIME) planstarttime ,
+                                                       longtodateadd1(a.PLANFINISHTIME) planfinishtime ,
+                                                       '设计计划结束日期：' || d.DESIGN_PLANFINISHTIME || ',设计实际结束日期： ' || d.DESIGN_ACTUALFINISHTIME  || ',截止' || to_char(sysdate,'yyyy-mm-dd') || '，工艺超期'
+                                                       || ceil(To_date(to_char(sysdate,'yyyy-mm-dd') , 'yyyy-mm-dd') - To_date(Longtodateadd1(a.PLANFINISHTIME) , 'yyyy-mm-dd'))
+                                                       || '天' as reason,
+                                                       CASE
+                                                       WHEN c.FINISHPERCENTAGE <100 and c.FINISHPERCENTAGE<>-100
+                                                            AND a.PLANFINISHTIME    < datetolong(trunc(sysdate)+23/24)
+                                                         THEN '超时'
+                                                       WHEN c.FINISHPERCENTAGE <100 and c.FINISHPERCENTAGE<>-100
+                                                            AND a.PLANFINISHTIME   >= datetolong(trunc(sysdate))
+                                                         THEN '进行中'
+                                                       WHEN c.FINISHPERCENTAGE =100
+                                                         THEN '已完成'
+                                                       WHEN c.FINISHPERCENTAGE =-100
+                                                         THEN '前序未完成'
+                                                       END flag ,
+                                                       CASE
+                                                       WHEN d.flag =1
+                                                         THEN
+                                                           CASE
+                                                           WHEN
+                                                             c.FINISHPERCENTAGE =100 then '工艺已完成'
+                                                           else
+                                                             CASE
+                                                             WHEN a.childcount>0  THEN '工艺未完成 ' ELSE '工艺未下发'
+                                                             END
+                                                           end
+                                                       ELSE
+                                                         CASE
+                                                         WHEN  d.childcount is not null
+                                                           THEN '设计未完成'
+                                                         ELSE '设计未下发'
+                                                         END
+                                                       END status
+                          FROM AP_PLAN_TASK a
+                            INNER JOIN AP_PLAN_PROJECT b
+                              ON a.PROJIID=b.innerid
+                            LEFT JOIN
+                            (SELECT t1.*,
+                               NVL(t2.finishpercentage, 0) finishpercentage,
+                               t2.business_task_name
+                             FROM (select a.*, CONCAT(orderno,specail_product_code ) productclass1  from ap_plan_special a  WHERE depart_name <> '控制器件事业部') t1
+                               LEFT JOIN ap_plan_task t2
+                                 ON CONCAT(SUBSTR(t2.name , 0, 10),SUBSTR(t2.name , 12))=t1.productclass1
+                                    AND SUBSTR(t2.business_task_name, 0, 7)   = 'I02@pdm'
+
+                            ) c ON b.orderno  = SUBSTR(c.orderno,0,8)
+                            LEFT JOIN
+                            (select business_task_name,
+                                min(case  STATENAME when '已完成' then 1 else 0 end) flag,
+                                min(childcount) childcount
+                               ,max(PROJIID) PROJIID,max(longtodateadd1(ACTUALFINISHTIME)) DESIGN_ACTUALFINISHTIME,max(longtodateadd1(PLANFINISHTIME)) DESIGN_PLANFINISHTIME
+                             from ap_plan_task where business_task_name like 'I02@plm%'
+                                                     and    STATENAME NOT IN('已挂起','编制中' ,'已取消')
+                             group by business_task_name
+                            ) d
+                              ON c.orderno = SUBSTR(d.business_task_name,8,10)
+                          WHERE a.name IN('工艺设计')
+                                AND a.memo LIKE 'special%'
+                                AND a.PLANSTARTTIME    < DATETOLONG(trunc((sysdate))+23.9998/24)
+                                AND (a.PLANFINISHTIME >= DATETOLONG(trunc(sysdate))
+                                     OR a.FINISHPERCENTAGE  <100)
+                                AND a.statename NOT   IN('已挂起','编制中','已取消')
+                        ) t WHERE flag='超时'
+                    ORDER BY FLAG,
+                      PLANFINISHTIME,
+                      orderno
+				]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+        <!-- 铸造超期查询  left join (select * from ap_plan_special where depart_name<>'控制器件事业部') c on b.orderno= substr(c.orderno,0,8)-->
+        <sql id="XSQL_avplan_exam_delayList_casting">
+
+            <dataSourceGroup ref="DSG_capmsplan"/>
+
+            <content>
+                <![CDATA[
+				SELECT *
+				,cast(datepart(yyyy,getdate()) as varchar) +'年'+right('00'+cast(month(getdate()) as varchar),2)+'月'+right('00'+cast(day(getdate()) as varchar),2)+'日' reportdate
+				 ,convert(varchar,getdate(),120) createtime
+				 ,newid() innerid
+				 ,':unitname' unitname
+
+					FROM (
+						SELECT ta.f_order_no AS orderno, ta.id, ta.gy_type AS gytype, CAST('查看进度' AS VARCHAR(8)) AS JD, ta.part_plan_no AS part_plan_no
+							, ta.plan_no AS planno, ta.item_code AS itemcode, ta.item_name AS itemname, ta.cl, ta.plan_qty AS planqty
+							, ta.zj_tcs AS zjtcs, ta.zj_wgs AS zjwgs, Isnull(ta.zj_kf_rks, 0) AS finishqty
+							, td.planstarttime AS planstarttime, td.planfinishtime AS planfinishtime, tm.dz AS single, ta.zj_xdrq1 AS zstime, ta.zj_xdrq2 AS zftime
+							, ta.zj_sx AS znum
+							, case when ta.zj_xdrq1 is null and ta.pu_progress_name is null then '铸件计划未下达'
+                                    when ta.zj_xdrq1 is null and ta.pu_progress_name ='铸件库存满足' then '铸件库存满足'
+                                    when ta.zj_xdrq1 is not null and isnull(ta.zj_kf_rks,0)>=isnull(ta.zj_sx,0) then '部分库存满足'
+                                    when ta.pu_progress_name ='铸件计划删除' then '铸件计划删除'
+                                    when  left(CONVERT(DATETIME, td.planstarttime, 101),10) < left(CONVERT(DATETIME, ta.zj_xdrq2, 101),10) then '铸件计划下迟'
+                              end  reason
+                              , case when ta.zj_xdrq1 is null and ta.pu_progress_name is null then '暂不考核'
+                                    when ta.zj_xdrq1 is null and ta.pu_progress_name ='铸件库存满足' then '不考核'
+                                    when ta.zj_xdrq1 is not null and isnull(ta.zj_kf_rks,0)>=isnull(ta.zj_sx,0) then '不考核'
+                                    when ta.pu_progress_name ='铸件计划删除' then '不考核'
+                                    when  CONVERT(DATETIME, getdate(), 101)-CONVERT(DATETIME, ta.zj_xdrq2, 101)<=CONVERT(DATETIME, td.planfinishtime, 101)-CONVERT(DATETIME, td.planstarttime, 101) then '暂不考核'
+                                    else '考核'
+                              end isexam
+							, CASE
+								WHEN td.status_td <> '已完成'
+								AND CONVERT(DATETIME, td.planfinishtime, 101) < CONVERT(DATETIME, CONVERT(VARCHAR(12), getdate(), 101), 101)
+								AND ta.plan_qty > Isnull(ta.zj_kf_rks, 0)
+								AND Isnull(ta.pu_progress_name, '') <> '铸件库存满足' THEN '超时'
+								WHEN td.status_td = '已完成'
+								AND CONVERT(DATETIME, td.planfinishtime, 101) < CONVERT(DATETIME, CONVERT(VARCHAR(12), getdate(), 101), 101)
+								AND Isnull(ta.pu_progress_name, 0) <> '铸件库存满足' THEN '多余'
+								WHEN ta.plan_qty <= Isnull(ta.zj_kf_rks, 0)
+								OR Isnull(ta.pu_progress_name, '') = '铸件库存满足' THEN '已完成'
+								WHEN ta.plan_qty > Isnull(ta.zj_kf_rks, 0)
+								AND CONVERT(DATETIME, td.planfinishtime, 101) >= CONVERT(DATETIME, CONVERT(VARCHAR(12), getdate(), 101), 101) THEN '进行中'
+							END AS status
+						FROM order_product_item_plan_main ta WITH (NOLOCK)
+							INNER JOIN (
+								SELECT order_no, planstarttime, planfinishtime, business_type AS gytype, status AS status_td
+								FROM order_plan_required_time td WITH (NOLOCK)
+								WHERE business_type IN ('精铸', '砂铸')
+									AND status NOT IN ('已取消')
+							) td
+							ON td.order_no = ta.f_order_no
+								AND td.gytype = ta.gy_type
+							LEFT JOIN (
+								SELECT t2.*, t1.lj_plan_main_id, t1.hth
+								FROM zj_rough_plan_sum_rel_plan_main t1 WITH (NOLOCK)
+									INNER JOIN zj_rough_plan_sum t2 WITH (NOLOCK) ON t2.ID = t1.zj_plan_id
+							) tm
+							ON tm.lj_plan_main_id = ta.id
+						WHERE Isnull(ta.pu_progress_name, '') <> '铸件计划删除'
+							AND CONVERT(DATETIME, td.planstarttime, 120) < CONVERT(DATETIME, CONVERT(VARCHAR(12), getdate()+1, 101), 101)
+							AND (CONVERT(DATETIME, td.planfinishtime, 120) >= CONVERT(DATETIME, CONVERT(VARCHAR(12), getdate(), 101), 101)
+								OR ta.plan_qty > Isnull(ta.zj_kf_rks, 0))
+						GROUP BY ta.f_order_no, ta.id, ta.zj_xdrq1, ta.zj_xdrq2, ta.zj_sx, ta.gy_type, ta.plan_no, ta.item_code, ta.item_name, ta.cl, ta.plan_qty, ta.zj_tcs, ta.zj_wgs, Isnull(ta.zj_kf_rks, 0), td.planstarttime, td.planfinishtime, tm.dz, ta.part_plan_no, td.status_td, ta.pu_progress_name
+					) a
+					WHERE a.status ='超时'
+						AND a.gytype = ':gytype'
+						order by status,planfinishtime,orderno,part_plan_no
+				]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+
+
+        <!-- 采购超期查询  left join (select * from ap_plan_special where depart_name<>'控制器件事业部') c on b.orderno= substr(c.orderno,0,8)-->
+        <sql id="XSQL_avplan_exam_delayList_purchasing">
+
+            <dataSourceGroup ref="DSG_middle"/>
+
+            <content>
+                <![CDATA[
+				select *
+				,cast(datepart(yyyy,getdate()) as varchar) +'年'+right('00'+cast(month(getdate()) as varchar),2)+'月'+right('00'+cast(day(getdate()) as varchar),2)+'日' reportdate
+				 ,convert(varchar,getdate(),120) createtime
+				 ,newid() innerid
+				 ,'采购部' unitname
+				from (
+				SELECT orderno  orderno,cast('查看进度' as varchar(8)) as JD,
+									   pu_type putype,
+									   planstarttime,
+									   planfinishtime,
+										CASE
+										   WHEN Isnull(plan_percent, '') = '' THEN null
+										   ELSE Cast (plan_percent AS DECIMAL(10, 2))
+										 END planpercent,
+										 CASE
+										   WHEN Isnull(order_percent, '') = '' THEN null
+										   ELSE Cast (order_percent AS DECIMAL(10, 2))
+										 END  orderpercent,
+										 CASE
+										   WHEN Isnull(receive_percent, '') = '' THEN null
+										   ELSE Cast (receive_percent AS DECIMAL(10, 2))
+										 END receivepercent,
+										 CASE
+										   WHEN Isnull(check_percent, '') = '' THEN null
+										   ELSE Cast (check_percent AS DECIMAL(10, 2))
+										 END checkpercent,
+										 CASE
+										   WHEN Isnull(in_percent, '') = '' THEN null
+										   ELSE Cast (in_percent AS DECIMAL(10, 2))
+										 END inpercent, +
+									   CASE
+										 WHEN CONVERT(DATETIME, planfinishtime, 101) < CONVERT(DATETIME, CONVERT(varchar(12) , getdate(), 101 ) , 101)
+											  AND CAST (case when isnull(in_percent,'')='' then '0'  else in_percent end  AS decimal(10,2)) < 100.0 THEN '超时'
+										 WHEN CAST (case when isnull(in_percent,'')='' then '0' else in_percent end  AS decimal(10,2)) < 100.0
+											  AND CONVERT(DATETIME, planfinishtime, 101) >= CONVERT(DATETIME, CONVERT(varchar(12) , getdate(), 101 ) , 101)  THEN '进行中'
+										 WHEN CAST (case when isnull(in_percent,'')='' then '0'  else in_percent end  AS decimal(10,2)) >= 100.0 THEN '已完成'
+									   END status
+								FROM   dbo.T_Statics_Purchase WITH(NOLOCK)
+								WHERE  CONVERT(DATETIME, planstarttime, 101) <  CONVERT(DATETIME, CONVERT(VARCHAR(12),GETDATE()+1,101) , 101)
+									   AND ( CONVERT(DATETIME, planfinishtime, 101) >= CONVERT(DATETIME, CONVERT(varchar(12) , getdate(), 101 ) , 101)
+											  OR CAST (case when isnull(in_percent,'')='' then '0'  else in_percent end  AS decimal(10,2)) < 100.0 )
+											  ) a where status='超时' order by planfinishtime,orderno,putype
+
+				]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+        <!-- 事业部超期查询  left join (select * from ap_plan_special where depart_name<>'控制器件事业部') c on b.orderno= substr(c.orderno,0,8)-->
+        <sql id="XSQL_avplan_exam_delayList_packaging">
+
+            <dataSourceGroup ref="DSG_capmsplan"/>
+            <!---->
+            <content>
+                <![CDATA[
+				SELECT tb.*, ta.planfinishtime AS ftime, ta.planstarttime AS stime
+				 ,cast(datepart(yyyy,getdate()) as varchar) +'年'+right('00'+cast(month(getdate()) as varchar),2)+'月'+right('00'+cast(day(getdate()) as varchar),2)+'日' reportdate
+				 ,convert(varchar,getdate(),120) createtime
+				 ,newid() innerid
+				 ,':unitname' unitname
+					FROM order_plan_required_time ta
+						INNER JOIN (
+							SELECT CAST('查看进度' AS varchar(8)) AS JD, a.order_no AS orderno, a.planstarttime, a.planfinishtime, a.status
+								, b.order_no AS suborderno, b.product_class productclass, b.plan_no planno, b.ZXJG, b.FJ
+								, b.required_qty, b.in_inv_count
+								, b.pt_count
+								,CONVERT(varchar(10), b.last_pt_date, 120) last_pt_date
+								,CONVERT(varchar(10), b.last_in_inv_data, 120) last_in_inv_data
+								, CASE
+									WHEN isnull(b.in_inv_count, 0) < b.required_qty
+									AND CONVERT(DATETIME, a.planfinishtime, 101) < CONVERT(DATETIME, CONVERT(varchar(12), getdate(), 101), 101) THEN '超时'
+									WHEN b.required_qty <= Isnull(b.in_inv_count, 0) THEN '已完成'
+									WHEN b.required_qty > Isnull(b.in_inv_count, 0) THEN '进行中'
+								END AS flag
+							FROM order_plan_required_time a WITH (NOLOCK)
+								INNER JOIN order_product_plan_cx b WITH (NOLOCK) ON a.order_no = b.f_order_no
+							WHERE status NOT IN ('编制中', '已取消', '已挂起')
+								AND b.depart_code <> '1000'
+								AND a.business_type = ':deptNameCons'
+								AND a.wbsflag = '0'
+								AND depart_code = ':detpCode'
+								AND CONVERT(DATETIME, a.planstarttime, 120) < CONVERT(DATETIME, CONVERT(varchar(12), getdate() + 1, 101), 101)
+								AND (CONVERT(DATETIME, a.planfinishtime, 120) >= CONVERT(DATETIME, CONVERT(varchar(12), getdate(), 101), 101)
+									OR b.required_qty > Isnull(b.in_inv_count, 0))
+						) tb
+						ON ta.order_no = tb.orderno
+					WHERE ta.business_type = '零件精加工'
+						AND tb.flag = '超时'  order by ta.planfinishtime,ta.order_no
+				]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+
+
+        <!-- 零件计划超期查询  left join (select * from ap_plan_special where depart_name<>'控制器件事业部') c on b.orderno= substr(c.orderno,0,8)-->
+        <sql id="XSQL_avplan_exam_delayList_itemplan">
+
+            <dataSourceGroup ref="DSG_capmsplan"/>
+
+            <content>
+                <![CDATA[
+				select *
+				 ,cast(datepart(yyyy,getdate()) as varchar) +'年'+right('00'+cast(month(getdate()) as varchar),2)+'月'+right('00'+cast(day(getdate()) as varchar),2)+'日' reportdate
+				 ,convert(varchar,getdate(),120) createtime
+				 ,newid() innerid
+				 from (
+					SELECT left(a.order_no,8) orderno,Count(a.order_no) bom_item_cnt,
+					   Count(CASE
+							   WHEN a.make_bom = 'Y' THEN 'Bom提取完成'
+							   ELSE NULL
+							 END)      bom_complete_cnt,
+					   Count(CASE
+							   WHEN a.item_plan_flag = 'Y' THEN '零件计划完成'
+							   ELSE NULL
+							 END)      item_plan_complete_cnt,
+					 case when
+					 Count(CASE
+							   WHEN a.make_bom = 'Y' THEN 'Bom提取完成'
+							   ELSE NULL
+							 END)  =  Count(a.order_no) then '是'
+							 else '否 ' end is_bom_complete_flag,
+					  case when
+					  Count(CASE
+							   WHEN a.item_plan_flag = 'Y' THEN '零件计划完成'
+							   ELSE NULL
+							 END) = Count(a.order_no) then '是'
+							 else '否' end is_item_plan_complete_flag,
+							 max(c.planstarttime) planstarttime,
+							 max(c.planfinishtime) planfinishtime
+
+				FROM   ORDER_PRODUCT_PLAN_DETAIL a WITH(NOLOCK)
+				inner join (select distinct planstarttime planstarttime,order_no order_no,planfinishtime planfinishtime
+				,status from order_plan_required_time WITH(NOLOCK) where business_type='零件计划下达'
+				and status not in('已取消','已挂起','编制中','已完成')
+				 and CONVERT(DATETIME, planfinishtime, 101) < CONVERT(DATETIME, CONVERT(varchar(12) , getdate()+1, 101 ) , 101)
+				 ) c
+				on left(a.order_no,8)=c.order_no
+				WHERE  a.class_sec_type IN( 'DP', 'PDFL', 'PGSM', 'FTZJ', 'ZXJG' )
+					   AND a.depart_code <> '1304'
+					   AND Isnull(a.wg_flag, '') <> 'Y'
+				group by left(a.order_no,8)) a where is_item_plan_complete_flag='否 '
+				order by planfinishtime,orderno
+				]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+
+
+        <!-- 零件计划超期查询  left join (select * from ap_plan_special where depart_name<>'控制器件事业部') c on b.orderno= substr(c.orderno,0,8)-->
+        <sql id="XSQL_avplan_exam_delayList_itemplan_list">
+
+            <dataSourceGroup ref="DSG_capmsplan"/>
+
+            <content>
+                <![CDATA[
+				select *
+				 ,cast(datepart(yyyy,getdate()) as varchar) +'年'+right('00'+cast(month(getdate()) as varchar),2)+'月'+right('00'+cast(day(getdate()) as varchar),2)+'日' reportdate
+				 ,convert(varchar,getdate(),120) createtime
+				 ,newid() innerid
+
+			from(
+				SELECT  a.order_no  orderno, a.class_type,a.class_sec_type,a.class_product,
+								CASE
+									   WHEN a.make_bom = 'Y' THEN '是'
+									   ELSE '否'
+									 END       is_bom_complete,
+								CASE
+									   WHEN a.item_plan_flag = 'Y' THEN '是'
+									   ELSE '否'
+									 END       is_item_plan_complete,
+
+									 c.planstarttime planstarttime,
+									 c.planfinishtime  planfinishtime
+
+						FROM   ORDER_PRODUCT_PLAN_DETAIL a WITH(NOLOCK)
+						inner join (select distinct planstarttime planstarttime,order_no order_no,planfinishtime planfinishtime
+						,status from order_plan_required_time WITH(NOLOCK) where business_type='零件计划下达'
+						and status not in('已取消','已挂起','编制中','已完成')
+						 and CONVERT(DATETIME, planfinishtime, 101) < CONVERT(DATETIME, CONVERT(varchar(12) , getdate()+1, 101 ) , 101)
+						 ) c
+						on left(a.order_no,8)=c.order_no
+						WHERE  a.class_sec_type IN( 'DP', 'PDFL', 'PGSM', 'FTZJ', 'ZXJG' )
+							   AND a.depart_code <> '1304'
+							   AND Isnull(a.wg_flag, '') <> 'Y'
+
+						  ) a where   is_item_plan_complete='否'
+						   order by orderno, class_type,class_sec_type
+				]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+
+        <!--采购三级明细sql 查考核原因-->
+        <sql id="XSQL_purchasing_exam_stock_info">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+
+            <content>
+                <![CDATA[
+
+					SELECT DISTINCT a.item_code, a.item_name, a.part_plan_no, a.order_qty AS order_qty, b.plan_qty AS plan_qty1
+						, nvl(b.cgrk_sl, 0) AS plan_qty
+						, nvl(b.available_stock, 0) AS available_stock
+						, CASE
+							WHEN b.cgrk_date <> to_date('2000-01-01', 'yyyy-mm-dd') THEN b.cgrk_date
+							ELSE NULL
+						END AS cgrk_date
+						, CASE
+							WHEN nvl(b.cgrk_sl, 0) >= order_qty THEN '已完成'
+							ELSE '未完成 '
+						END AS flag, c.trans_date AS lastInDate, nvl(c.qty, 0) AS lastInQty
+						, nvl(d.stocks, 0) AS currentStocks
+					FROM order_product_item_plan a
+					LEFT JOIN pu_purchasing_schedule b ON a.part_plan_no = b.part_plan_no
+					LEFT JOIN st_trans_account_temp c ON a.item_code = c.item_code
+						LEFT JOIN st_master_account d ON a.item_code = d.item_code
+					WHERE a.gy_type = ':putype'
+						AND nvl(b.pu_progress_name, 'N') <> '库存满足'
+						AND a.orderno8 = ':orderno'
+						AND CASE
+							WHEN nvl(b.cgrk_sl, 0) >= order_qty THEN '已完成'
+							ELSE '未完成'
+						END = '未完成'
+					ORDER BY a.part_plan_no
+				]]>
+            </content>
+            <!--<result>-->
+            <!--<row>java.util.HashMap</row>-->
+            <!--<cfill>put(colName ,colValue)</cfill>-->
+            <!--</result>-->
+            <result>
+                <row>com.fms.avplan.deptExamReport.model.PurchaseDeptReportModel1</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+
+        <!--毛坯外协件采购三级明细sql 查考核原因-->
+        <sql id="XSQL_purchasing_exam_stock_info_rough">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+
+            <content>
+                <![CDATA[
+
+					SELECT distinct  e.roughimageno item_code, a.item_name, a.part_plan_no, a.order_qty AS order_qty, b.plan_qty AS plan_qty1
+									, nvl(b.cgrk_sl, 0) AS plan_qty
+									, nvl(b.available_stock, 0) AS available_stock
+									, CASE
+										WHEN b.cgrk_date <> to_date('2000-01-01', 'yyyy-mm-dd') THEN b.cgrk_date
+										ELSE NULL
+									END AS cgrk_date
+									, CASE
+										WHEN nvl(b.cgrk_sl, 0) >= order_qty THEN '已完成'
+										ELSE '未完成 '
+									END AS flag, c.trans_date AS lastInDate, nvl(c.qty, 0) AS lastInQty
+									, nvl(d.stocks, 0) AS currentStocks
+								FROM order_product_item_plan a
+								LEFT JOIN pu_purchasing_schedule b ON a.part_plan_no = b.part_plan_no
+					  LEFT JOIN product_component_info_BOM e  on a.item_code= e.imageno
+								LEFT JOIN st_trans_account_temp c ON e.roughimageno = c.item_code
+									LEFT JOIN st_master_account d ON e.roughimageno = d.item_code
+
+								WHERE a.gy_type = '毛坯外协件'
+									AND nvl(b.pu_progress_name, 'N') <> '库存满足'
+									AND a.orderno8 = ':orderno'
+									AND CASE
+										WHEN nvl(b.cgrk_sl, 0) >= order_qty THEN '已完成'
+										ELSE '未完成'
+									END = '未完成'
+								ORDER BY a.part_plan_no
+				]]>
+            </content>
+            <result>
+                <row>com.fms.avplan.deptExamReport.model.PurchaseDeptReportModel1</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+        <sql id="XSQL_avplan_exam_purchasing_date">
+            <dataSourceGroup ref="DSG_avplan"/>
+            <content>
+                SELECT
+                    LONGTODATEADD1(t.planstarttime) planstarttime,
+                    LONGTODATEADD1(t.planfinishtime) planfinishtime,
+                    t.name
+                FROM ap_plan_task t ,ap_plan_project p
+                WHERE p.INNERID=t.PROJIID
+                AND   p.orderno =':orderno'
+                AND   t.name=':putype'
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+        <sql id="XSQL_avplan_exam_purchasing_reason">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+
+            <content>
+                <![CDATA[
+
+                    SELECT
+
+						case when a.cgjg='库存满足' then  a.item_code || '：库存满足'
+							 else  a.item_code || '：' || trim(to_char(SUM(a.xqsl),'999999')) || '/' || trim(to_char(SUM(nvl(b.stock_qty, 0)),'999999'))
+						end AS reason
+                    FROM pu_cgjh_detail a
+                        LEFT JOIN pu_receive_detail b
+                        ON a.lxdh = b.order_no
+                            AND a.item_code = b.item_code
+                    WHERE a.gyfl = ':putype'
+                        AND a.orderno8 = ':orderno'
+                    GROUP BY a.item_code,a.cgjg
+
+
+				]]>
+            </content>
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+
+        <!--查询工艺和设计完成情况-->
+        <sql id="XSQL_avplan_exam_desing_technics_reason_detail">
+            <dataSourceGroup ref="DSG_avplan"/>
+
+            <content>
+                <![CDATA[
+					select
+					  name,
+					  ownername,
+					  LONGTODATEADD1(planstarttime) planstarttime
+					  ,LONGTODATEADD1(planfinishtime) planfinishtime
+					  ,case actualstarttime when  0 then '' else  LONGTODATEADD1(actualstarttime) end actualstarttime
+					  ,case actualfinishtime when  0 then '' else  LONGTODATEADD1(actualfinishtime) end actualfinishtime
+					from ap_plan_task
+                    WHERE name like '%:suborderno%'
+                    	AND TRIM(ownername) = ':ownername'
+
+				]]>
+            </content>
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+
+        <!--查询铸造情况-->
+        <sql id="XSQL_cloud_exam_casting_reason_detail">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+
+            <content>
+                <![CDATA[
+					SELECT A.ORDERNO8
+						  ,A.PART_PLAN_NO
+						  ,A.ITEM_NAME
+              			  ,A.ITEM_CODE
+						  ,to_char(B.ORDER_QTY) ORDER_QTY
+						  ,to_char(B.ZJ_SX) ZJ_SX
+						  ,to_char(B.ZJ_TCS) ZJ_TCS
+						  ,to_char(B.ZJ_WGS) ZJ_WGS
+						  ,to_char(B.PU_PROGRESS_NAME) PU_PROGRESS_NAME
+						  ,to_char(B.ZJ_KF_RKS) ZJ_KF_RKS
+						  ,to_char(B.ZJ_KF_RKRQ2,'yyyy-mm-dd') ZJ_KF_RKRQ2
+						  ,to_char(A.GY_TYPE) GY_TYPE
+						FROM
+						  ORDER_PRODUCT_ITEM_PLAN A ,
+						  ORDER_PRODUCT_ITEM_PLAN_MAIN B
+						WHERE A.PART_PLAN_NO=B.PART_PLAN_NO(+)
+							  <[ AND A.ORDER_NO = ':suborderno' ]>
+							  <[ AND A.PART_PLAN_NO = ':part_plan_no' ]>
+							  <[ AND A.ORDERNO8 = ':orderno' ]>
+							  AND A.gy_type in('精铸','砂铸')
+				]]>
+            </content>
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+
+        <!--查询机加情况-->
+        <sql id="XSQL_cloud_exam_casting_reason_detail_time">
+            <dataSourceGroup ref="DSG_capmsplan"/>
+
+            <content>
+                <![CDATA[
+                  SELECT
+                      order_no            order_no,
+                      planstarttime,
+                      planfinishtime,
+                      ':part_plan_no'     part_plan_no,
+                      ':gy_type'          gy_type,
+                      ':item_name'        item_name,
+                      ':item_code'        item_code,
+                      ':order_qty'        order_qty,
+                      ':zj_sx'            zj_sx,
+                      ':zj_tcs'           zj_tcs,
+                      ':zj_wgs'           zj_wgs,
+                      ':pu_progress_name' pu_progress_name,
+                      ':zj_kf_rks'        zj_kf_rks,
+                      ':zj_kf_rkrq2'      zj_kf_rkrq2
+                    FROM
+                      order_plan_required_time with (nolock )
+                    WHERE order_no = ':orderno'
+                    AND business_type = ':gy_type'
+				]]>
+            </content>
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+
+        <sqlGroup id="GXSQL_cloud_exam_casting_reason_detail">
+            <sqlNode>
+                <sql ref="XSQL_cloud_exam_casting_reason_detail"/>
+                <type ref="this.$Type_Query"/>
+            </sqlNode>
+            <sqlNode>
+                <sql ref="XSQL_cloud_exam_casting_reason_detail_time"/>
+                <type ref="this.$Type_Query"/>
+                <returnID>reasonDetailList</returnID>
+                <returnAppend>true</returnAppend>
+            </sqlNode>
+        </sqlGroup>
+
+
+        <!--查询机加情况-->
+        <sql id="XSQL_cloud_exam_maching_reason_detail">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+            <content>
+                <![CDATA[
+					SELECT
+					   a.item_name ||
+                         CASE WHEN nvl(a.bj_flag,'')='Y' then '（部件）'
+                             WHEN a.bj_id is not null then '（子件）'
+                             else '' end   item_name
+					  ,a.item_code
+					  ,A.gy_type
+					  ,order_qty
+                      ,A.cl item_cl
+                      ,A.finish_date
+                      ,A.receive_material_date
+                      ,A.receive_material_qty
+                      ,a.finish_qty
+                      ,a.component_flag
+                      ,a.part_plan_no
+                    FROM
+                      ORDER_PRODUCT_ITEM_PLAN A
+                    WHERE
+                        A.ORDER_NO = ':suborderno'
+                    AND dept_code<>'1000'
+				]]>
+            </content>
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+
+        <!--查询机加情况-->
+        <sql id="XSQL_cloud_exam_maching_reason_detail_time">
+            <dataSourceGroup ref="DSG_capmsplan"/>
+
+            <content>
+                <![CDATA[
+                  SELECT
+					  planstarttime
+					  ,planfinishtime
+					  ,':gy_type'               gy_type
+					  ,':item_cl'               item_cl
+					  ,':finish_date'           finish_date
+					  ,':item_code'             item_code
+					  ,':item_name'             item_name
+					  ,':order_qty' 			order_qty
+					  ,':receive_material_date' receive_material_date
+					  ,':receive_material_qty'  receive_material_qty
+					  ,':finish_qty'            finish_qty
+					  ,':component_flag'        component_flag
+					  ,':part_plan_no'		    part_plan_no
+					FROM
+					  ORDER_PLAN_REQUIRED_TIME with (nolock )
+					WHERE order_no = ':orderno'
+					AND business_type = '零件精加工'
+				]]>
+            </content>
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+
+        <sqlGroup id="GXSQL_cloud_exam_maching_reason_detail">
+            <sqlNode>
+                <sql ref="XSQL_cloud_exam_maching_reason_detail"/>
+                <type ref="this.$Type_Query"/>
+            </sqlNode>
+            <sqlNode>
+                <sql ref="XSQL_cloud_exam_maching_reason_detail_time"/>
+                <type ref="this.$Type_Query"/>
+                <returnID>reasonDetailList</returnID>
+                <returnAppend>true</returnAppend>
+            </sqlNode>
+        </sqlGroup>
+
+        <sql id="XSQL_avplan_exam_package_detail">
+
+            <dataSourceGroup ref="DSG_capmsplan"/>
+
+            <content>
+                <![CDATA[
+				 SELECT
+                    order_no suborderno
+                    ,cpbh
+                    ,product_class
+                    ,quity
+                    ,position_no
+                    ,CASE WHEN  depart_code='0720' THEN '调节阀事业部'
+                    WHEN  depart_code='0730' THEN '球阀事业部'
+                    WHEN  depart_code='0740' THEN '高端阀事业部'
+                    WHEN  depart_code='0760' THEN '蝶阀事业部'
+                    WHEN  depart_code='0900' THEN '控制器件事业部'
+                    WHEN  depart_code='1304' THEN 'CV3000事业部'
+                    END depart_code
+                    ,CASE WHEN CT_FLAG = 'Y' THEN '已成套' ELSE '未成套' END ispackage
+                    ,in_shop_date packagetime
+                    ,in_inv_date  instoragetime
+                 FROM order_zp_shop_head WITH(NOLOCK) WHERE order_no=':suborderno'
+				]]>
+            </content>
+
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+
+        </sql>
+
+        <sql id="XSQL_avplan_exam_package_detail_time">
+            <dataSourceGroup ref="DSG_avplan"/>
+
+            <content>
+                <![CDATA[
+                SELECT
+                   LONGTODATEADD1(t.planstarttime)     planstarttime
+                  ,LONGTODATEADD1(t.planfinishtime)   planfinishtime
+                  ,substr(':suborderno',0,8)        orderno
+                  ,':order_no'                      suborderno
+                  ,':cpbh'                          cpbh
+                  ,':product_class'                 product_class
+                  ,':quity'                         quity
+                  ,':position_no'                   position_no
+                  ,':depart_code' 			        depart_code
+                  ,':ispackage'                     ispackage
+                  ,':packagetime'                   packagetime
+                  ,':instoragetime'                 instoragetime
+                FROM
+                  ap_plan_task t ,ap_plan_project p
+                WHERE t.projiid = p.innerid
+                      AND p.ORDERNO = substr(':suborderno',0,8)
+                      AND t.name = '装配入库'
+				]]>
+            </content>
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+
+
+        <sqlGroup id="GXSQL_avplan_exam_package_detail">
+            <sqlNode>
+                <sql ref="XSQL_avplan_exam_package_detail"/>
+                <type ref="this.$Type_Query"/>
+            </sqlNode>
+            <sqlNode>
+                <sql ref="XSQL_avplan_exam_package_detail_time"/>
+                <type ref="this.$Type_Query"/>
+                <returnID>reasonDetailList</returnID>
+                <returnAppend>true</returnAppend>
+            </sqlNode>
+        </sqlGroup>
+
+
+
+        <sql id="XSQL_cloud_exam_excute_st_trans_account_temp">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+            <content>
+                <![CDATA[
+                   DELETE FROM st_trans_account_temp;/
+                   INSERT INTO st_trans_account_temp (item_code,qty,trans_date)
+                        SELECT item_code,qty,trans_date FROM (
+                            SELECT row_number() OVER (PARTITION BY  t2.item_code  ORDER BY t2.trans_date DESC ) rn,t2.qty,t2.item_code,t2.trans_date
+                        FROM st_trans_account t2
+                        WHERE  1=1 AND t2.trans_type = '入库'
+                        ) b WHERE b.rn = 1 ;/
+				]]>
+            </content>
+        </sql>
+
+        <!--查询机加整体情况-->
+        <sql id="XSQL_cloud_exam_maching_reason_total">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+
+            <content>
+                <![CDATA[
+				    SELECT '共涉及自制件' || cnt || '项,领料已完成' || count_receive_material || '项，未完成'
+				    || (total_receive_material_cnt - count_receive_material) || '项，最晚领料时间:' || last_receive_material_date
+				    || '；机加已完成' || count_complete || '项，未完成' || (total_machining_cnt - count_complete) || '项，最晚机加完成时间:'
+				    || last_finish_date || ';' || t1.reason || t2.reason AS total_reason
+                    FROM (
+                        SELECT COUNT(*) AS cnt, SUM(CASE
+                                WHEN nvl(a.bj_flag, NULL) = 'Y' THEN 0
+                                ELSE 1
+                            END) AS total_receive_material_cnt
+                            , SUM(CASE
+                                WHEN a.bj_id IS NULL THEN 1
+                                ELSE 0
+                            END) AS total_machining_cnt, SUM(CASE
+                                WHEN nvl(a.receive_material_qty, 0) >= nvl(a.order_qty, 0)
+                                AND a.receive_material_date IS NOT NULL THEN 1
+                                ELSE 0
+                            END) AS count_receive_material
+                            , SUM(CASE
+                                WHEN nvl(a.finish_qty, 0) >= nvl(a.order_qty, 0)
+                                AND a.finish_date IS NOT NULL THEN 1
+                                ELSE 0
+                            END) AS count_complete, MAX(receive_material_date) AS last_receive_material_date
+                            , MAX(replace(finish_date, '/', '-')) AS last_finish_date
+                        FROM order_product_item_plan a
+                        WHERE a.order_no = ':suborderno'
+                            AND dept_code <> '1000'
+                    ) t, (
+                        SELECT '成套部分：已成套' || NVL(SUM(CASE WHEN ct_flag = 'Y' THEN 1 ELSE 0 END),0) || '台，最近成套日期：' || REPLACE(MAX(IN_SHOP_DATE), '/', '-') AS reason
+                        FROM order_zp_shop_head
+                        WHERE order_no = ':suborderno'
+                    ) t1, (
+                        SELECT '附件连接：需连接' || COUNT(1) || '台，已连接' || NVL(SUM(CASE WHEN NVL(IN_INV_COUNT, 0) >= NVL(QUITY, 0) THEN 1 ELSE 0 END),0) || '台，最近成套日期：' || REPLACE(MAX(IN_INV_DATE), '/', '-') AS reason
+                        FROM order_zp_shop_head_fj
+                        WHERE order_no = ':suborderno'
+                    ) t2
+				]]>
+            </content>
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+        <!--机加原因-->
+        <sql id="XSQL_cloud_exam_query_maching_reason">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+            <content>
+            <![CDATA[
+                SELECT
+                  '<b>机加部分</b>：共涉及自制件' || cnt || '项,其中领料已完成' || count_receive_material || '项,领料未完成'
+                  || (total_receive_material_cnt - count_receive_material) || '项，最晚领料日期:' || last_receive_material_date
+                  || '；机加完成' || count_complete || '项，机加未完成' || (total_machining_cnt - count_complete) || '项,最近机加完成日期:'
+                  || last_finish_date || '；<br/>'          AS reason,
+                  pt_count,
+                  last_pt_date
+                FROM (
+                       SELECT
+                          COUNT(*)                             AS cnt
+                         ,SUM( DECODE( NVL(a.bj_flag, NULL),'Y',0,1 ) ) AS total_receive_material_cnt
+                         ,SUM( DECODE( a.bj_id , NULL , 1 , 0 )) AS total_machining_cnt
+                         ,SUM( CASE WHEN (NVL(a.receive_material_qty, 0) >= NVL(a.order_qty, 0))
+                                         AND a.receive_material_date IS NOT NULL
+                                         AND NVL(A.BJ_FLAG,'N')<>'Y' THEN 1 ELSE 0
+                               END )                           AS count_receive_material
+                         ,SUM( CASE WHEN (NVL(a.finish_qty, 0) >= NVL(a.order_qty, 0)
+                                          AND a.bj_id IS NULL) THEN 1 ELSE 0
+                               END)                            AS count_complete
+                         ,MAX(receive_material_date)           AS last_receive_material_date
+                         ,MAX(REPLACE(finish_date, '/', '-'))  AS last_finish_date
+                         ,(CASE WHEN (TO_CHAR(MAX(b.last_pt_date), 'yyyy-mm-dd') <> '2000-01-01')
+                         THEN TO_CHAR(MAX(b.last_pt_date), 'yyyy-mm-dd') ELSE NULL
+                           END)                                 AS last_pt_date
+                         ,MAX(b.pt_count)                      AS pt_count
+                       FROM order_product_item_plan a, order_product_plan_cx b
+                       WHERE a.ORDER_NO = b.order_no
+                             AND A.ORDER_NO = ':suborderno'
+                             AND dept_code <> '1000'
+                             AND component_flag = 'FTZJ'
+                     ) t
+            ]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+        <!--配餐1-->
+        <sql id="XSQL_capmsplan_exam_query_catering_1_reason">
+            <dataSourceGroup ref="DSG_capmsplan"/>
+            <content>
+                <![CDATA[
+
+                    SELECT
+                      ':reason'+'<b>配餐部分</b>：需配餐阀门'+ convert(varchar(100),count(1)) + '项，' AS reason,
+                      convert(varchar(100),count(1)) required_qty,
+                      ':pt_count'           pt_count,
+                      ':last_pt_date'       last_pt_date
+                    FROM order_proudct_cpbh WITH(NOLOCK)  where order_no = ':suborderno'
+            ]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+        <!--配餐2-->
+        <sql id="XSQL_msg_exam_query_catering_2_reason">
+            <dataSourceGroup ref="DSG_msg"/>
+            <content>
+                <![CDATA[
+                    SELECT ':reason' || '已提交电子配餐申请' || bcnt || '项，未提交'
+                       || NVL(TO_NUMBER(':required_qty') - acnt, 0) || '项，已完成配餐'
+                       || acnt || '项，未完成' || NVL(TO_NUMBER(':required_qty') - acnt, 0)
+                       || '项，最晚配餐时间：' || finishtime || '；' AS reason,
+                       ':pt_count'           pt_count,
+                      ':last_pt_date'       last_pt_date
+                FROM
+                  (SELECT
+                     count(1)                            acnt,
+                     NVL(MAX(finishtime), '<i>暂未完成</i>') finishtime
+                   FROM catering_msg_manage
+                   WHERE orderno = ':suborderno' AND NVL(stage, 'N') = '已配送') a,
+                  (SELECT count(1) bcnt
+                   FROM catering_msg_manage
+                   WHERE orderno = ':suborderno' AND NVL(stage, 'N') = '已提交') b
+            ]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+        <!--配餐3-->
+        <sql id="XSQL_msg_exam_query_catering_3_reason">
+            <dataSourceGroup ref="DSG_69_master"/>
+            <content>
+                <![CDATA[
+                     SELECT ':reason'+'缺件' + convert(varchar(20), count(1)) + '项；<br/>' reason,
+                     ':pt_count'           pt_count,
+                      ':last_pt_date'       last_pt_date
+                        FROM order_shop_bom
+                        where order_no = ':suborderno' and state='存货不足'
+            ]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+
+
+        <!--成套原因-->
+        <sql id="XSQL_cloud_exam_query_packaging_reason">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+            <content>
+                <![CDATA[
+                    SELECT ':reason'||'<b>成套部分：</b>已成套'
+                        || NVL(SUM(CASE WHEN ct_flag = 'Y' THEN 1 ELSE 0 END),0)
+                        || '台，最近成套日期：' || NVL( REPLACE(MAX(IN_SHOP_DATE), '/', '-'),'<i>暂未完成</i>') || '；<br/>' AS reason,
+                        ':pt_count'           pt_count,
+                      ':last_pt_date'       last_pt_date
+                        FROM order_zp_shop_head
+                        WHERE order_no = ':suborderno'
+            ]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+        <!--附件连接-->
+        <sql id="XSQL_cloud_exam_query_fjlj_reason">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+            <content>
+                <![CDATA[
+                    SELECT ':reason'||'<b>附件连接：</b>需连接' || COUNT(1) || '台，已连接'
+                        || NVL(SUM(CASE WHEN NVL(IN_INV_COUNT, 0) >= NVL(QUITY, 0) THEN 1 ELSE 0 END),0)
+                        || '台，最近连接日期：' || NVL(REPLACE( MAX(IN_INV_DATE), '/', '-'),'<i>暂未完成</i>') AS reason,
+                        ':pt_count'           pt_count,
+                      ':last_pt_date'       last_pt_date
+                        FROM order_zp_shop_head_fj
+                        WHERE order_no = ':suborderno'
+                ]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+        <!--查询附件连接情况-->
+        <sql id="XSQL_cloud_exam_fjlj_detail">
+            <dataSourceGroup ref="DSG_calccloud_oracle"/>
+
+            <content>
+                <![CDATA[
+				SELECT
+                    order_no suborderno
+                   ,cpbh
+                   ,product_class
+                   ,quity
+                   ,in_inv_count
+                   ,in_inv_date
+                 FROM order_zp_shop_head_fj
+                 WHERE order_no = ':suborderno'
+				]]>
+            </content>
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+
+        <sqlGroup id="GXSQL_cloud_exam_maching_reason">
+            <!--<log>true</log>-->
+            <sqlNode>
+                <sql ref="XSQL_cloud_exam_query_maching_reason"/>
+                <type ref="this.$Type_Query"/>
+                <returnID>machingDetailList</returnID>
+                <returnQuery>true</returnQuery>
+            </sqlNode>
+            <sqlNode>
+                <sql ref="XSQL_capmsplan_exam_query_catering_1_reason"/>
+                <type ref="this.$Type_Query"/>
+            </sqlNode>
+            <sqlNode>
+                <sql ref="XSQL_msg_exam_query_catering_2_reason"/>
+                <type ref="this.$Type_Query"/>
+            </sqlNode>
+            <sqlNode>
+                <sql ref="XSQL_msg_exam_query_catering_3_reason"/>
+                <type ref="this.$Type_Query"/>
+            </sqlNode>
+            <sqlNode>
+                <sql ref="XSQL_cloud_exam_query_packaging_reason"/>
+                <type ref="this.$Type_Query"/>
+            </sqlNode>
+            <sqlNode>
+                <sql ref="XSQL_cloud_exam_query_fjlj_reason"/>
+                <type ref="this.$Type_Query"/>
+                <returnID>reasonDetailList</returnID>
+                <returnAppend>true</returnAppend>
+            </sqlNode>
+        </sqlGroup>
+
+        <sql id="XSQL_msg_exam_catering_detail">
+            <dataSourceGroup ref="DSG_msg"/>
+
+            <content>
+                <![CDATA[
+				SELECT
+                  s.suborderno,
+                  s.orderno,
+                  m.productno,
+                  m.stage,
+                  m.finishtime
+                FROM ORDER_INFO_SUMMARY s
+                  LEFT JOIN catering_msg_manage m
+                    ON s.suborderno = m.orderno
+                WHERE  s.suborderno = ':suborderno'
+                ORDER BY m.productno
+				]]>
+            </content>
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+
+    </sqls>
+
+</config>

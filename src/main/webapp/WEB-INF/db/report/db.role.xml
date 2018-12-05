@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+	<!-- 将该配置文件放到WEB-INF\db\report下 -->
+	<!-- 该配置文件为操作数据库sql语句定义，id为调用标识 -->
+	<!-- DSG_brp替换成自己配置的数据库组 -->
+	<!-- 
+	startup.Config.xml中添加
+	<item> 
+				<value>db/report/db.role.xml</value>
+	</item>
+	-->
+	<import name="sqls"            class="java.util.ArrayList" />
+	<import name="sql"             class="org.hy.common.xml.XSQL" />
+
+
+
+    <!--  report-卡类别记录模块的相关SQL -->
+	<sqls>
+
+		<!-- 非注册者的：新增操作日志信息 -->
+		<sql id="XSQL_report_Role_QUERYLIST">
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+				<![CDATA[
+					  SELECT  
+							  base_roleID baseRoleid
+							  ,Base_RoleName baseRolename
+
+                      	FROM  dbo.General_role
+                       WHERE  1=1  
+							  <[ AND  base_roleID = ':baseRoleid' ]>
+							  <[ AND  Base_RoleName = ':baseRolename' ]>
+
+				]]>
+			</content>
+			
+			<result>
+				<row>com.fms.report.model.Role</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+			
+		</sql>
+		
+		
+		<!-- 非注册者的：新增操作日志信息 -->
+		<sql id="XSQL_report_Role_QueryList_Count">
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+			<!--count改成某个字段效率高-->
+				<![CDATA[
+					  
+					  SELECT  count(*) countRole
+                      	FROM  dbo.General_role
+                       WHERE  1=1  
+							  <[ AND  base_roleID = ':baseRoleid' ]>
+							  <[ AND  Base_RoleName = ':baseRolename' ]>
+
+				]]>
+			</content>
+			
+		</sql>
+		
+		<!-- 分页查询片段sql -->
+		<sql id="XSQL_report_Role_QueryByPage">
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+				<!-- 注意order by后面的字段可能实际业务表中没有，用实际的排序 -->
+				<![CDATA[
+			          SELECT  row_number() over(order by id) as rownumber,
+							  base_roleID baseRoleid
+							  ,Base_RoleName baseRolename
+
+					    FROM  dbo.General_role
+					   WHERE  1=1  
+							  <[ AND  base_roleID = ':baseRoleid' ]>
+							  <[ AND  Base_RoleName = ':baseRolename' ]>
+
+				]]>
+			</content>
+			
+			<result>
+				<row>com.fms.report.model.Role</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+			
+		</sql>
+		
+		
+		<!-- 提交报价功能06：提交附件信息 -->
+		<sql id="XSQL_report_Role_INSERT"> 
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			<!-- 注意自增长id，序列等要删除 -->
+			<content>
+				<![CDATA[
+				INSERT  INTO dbo.General_role
+				       (
+							  base_roleID
+							  ,Base_RoleName
+
+				       )
+				VALUES (
+							  ':baseRoleid'
+							  ,':baseRolename'
+
+				       )
+				]]>
+			</content>
+			
+		</sql>
+		
+		<!-- 通用查询功能 -->
+		<sql id="XSQL_report_Role_UPDATE"> 
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+				<![CDATA[
+					  UPDATE  dbo.General_role
+					     SET  
+							      base_roleID = ':baseRoleid'
+							  <[ ,Base_RoleName = ':baseRolename' ]>
+
+					   WHERE  1    = 1 
+							     AND  base_roleID = ':baseRoleid'
+							  <[ AND  Base_RoleName = ':baseRolename' ]>
+
+				]]>
+			</content>
+			
+		</sql>
+		
+				<!-- 通用查询功能 -->
+		<sql id="XSQL_report_Role_DELETE"> 
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+				<![CDATA[
+					   DELETE from dbo.General_role
+					   WHERE  1    = 1 
+							     AND  base_roleID = ':baseRoleid'
+							  <[ AND  Base_RoleName = ':baseRolename' ]>
+
+				]]>
+			</content>
+			
+		</sql>
+	</sqls>
+	
+</config>

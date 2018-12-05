@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="startupConfig"   class="java.util.ArrayList" />
+	<import name="item"            class="org.hy.common.app.Param" />
+	
+	
+	
+	<!-- 启动加载XML配置信息的列表 -->
+	<xconfig>
+		
+	    <startupConfig id="StartupConfig">
+	    
+	    	<item if="IsOpenServerSocket">
+	    		<value>sys.ServerConfig.xml</value>
+	    	</item>
+	    	
+	    	<item>
+	    		<value>sys.AnalysesCatalogue.xml</value>
+	    	</item>
+	    	
+	    	<item>
+				<value>sys.DB.Config.xml</value>
+			</item>
+			
+			<!-- 加载数据库目录所有配置文件  ZhengWei(HY) Add 2017-01-11 -->
+			<item>
+				<value>db/</value>
+	    	</item>
+	        		
+			<!-- 版本信息文件加载 -->
+			<item>
+	    		<value>sys.Version.xml</value>
+	    	</item>
+
+			<!-- 加载API目录所有配置文件  ZhengWei(HY) Add 2017-01-11 -->
+			<!--<item>-->
+				<!--<value>api/</value>-->
+			<!--</item>-->
+
+			<!-- 加载report目录所有配置文件  wusong  2018 7.19 -->
+			<item>
+				<value>report/</value>
+			</item>
+
+			<item>
+				<value>sys.AppRestfuls.xml</value>
+			</item>
+
+		</startupConfig>
+		
+	</xconfig>
+	
+</config>

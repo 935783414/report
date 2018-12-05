@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+	<!-- 该配置文件为接口注册片段示例-->
+	<!-- 将该配置文件放到WEB-INF\api\${system}下 -->
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="xparam"          class="java.util.LinkedHashMap" />
+	<import name="item"            class="com.fms.platform.appInterfaces.InterfaceInfo" />
+	
+	
+	
+	<!-- 系统对外开放的接口配置 -->
+	<xconfig>
+		
+	    <xparam id="AppRestfuls" key="name" this="AppRestfuls">
+			
+
+			
+			<item>
+				<innerNo>${system}.Template.Retrieve.A001</innerNo>
+				<name>${system}/template/queryTemplateList</name>
+				<value>com.fms.${system}.appInterfaces.restful.TemplateApiImpl</value>
+				<requestClass>com.fms.${system}.dto.TemplateInDto</requestClass>
+				<responseClass>com.fms.${system}.dto.TemplateOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>${beanDesc}</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>${system}.Template.Retrieve.A002</innerNo>
+				<name>${system}/template/queryTemplateListByPage</name>
+				<value>com.fms.${system}.appInterfaces.restful.TemplateApiImpl</value>
+				<requestClass>com.fms.${system}.dto.TemplateInDto</requestClass>
+				<responseClass>com.fms.${system}.dto.TemplateOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>${beanDesc}</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>${system}.Template.Retrieve.A003</innerNo>
+				<name>${system}/template/queryTemplate</name>
+				<value>com.fms.${system}.appInterfaces.restful.TemplateApiImpl</value>
+				<requestClass>com.fms.${system}.dto.TemplateInDto</requestClass>
+				<responseClass>com.fms.${system}.dto.TemplateOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>${beanDesc}</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>${system}.Template.Create.A001</innerNo>
+				<name>${system}/template/saveTemplate</name>
+				<value>com.fms.${system}.appInterfaces.restful.TemplateApiImpl</value>
+				<requestClass>com.fms.${system}.dto.TemplateInDto</requestClass>
+				<responseClass>com.fms.${system}.dto.TemplateOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>${beanDesc}</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>${system}.Template.Update.A001</innerNo>
+				<name>${system}/template/updateTemplate</name>
+				<value>com.fms.${system}.appInterfaces.restful.TemplateApiImpl</value>
+				<requestClass>com.fms.${system}.dto.TemplateInDto</requestClass>
+				<responseClass>com.fms.${system}.dto.TemplateOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>${beanDesc}</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>${system}.Template.Delete.A001</innerNo>
+				<name>${system}/template/deleteTemplate</name>
+				<value>com.fms.${system}.appInterfaces.restful.TemplateApiImpl</value>
+				<requestClass>com.fms.${system}.dto.TemplateInDto</requestClass>
+				<responseClass>com.fms.${system}.dto.TemplateOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>${beanDesc}</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			
+			
+		</xparam>
+		
+	</xconfig>
+	
+</config>

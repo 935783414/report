@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="versions"        class="java.util.ArrayList" />
+	<import name="version"         class="com.fms.platform.model.Version" />
+	
+	
+	
+	<!-- 系统版本信息 -->
+	<xconfig>
+		
+	    <versions id="Versions">
+	    
+	    	<version>
+	            <name>1.0</name>
+				<value>2018-06-22</value>
+				<comment>
+				     统一报表服务
+				</comment>
+				<dbVersion>1.0</dbVersion>
+	        </version>
+	        
+		</versions>
+		
+	</xconfig>
+	
+</config>

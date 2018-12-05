@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+	<!-- 该配置文件为接口注册片段示例-->
+	<!-- 将该配置文件放到WEB-INF\api\report下 -->
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="xparam"          class="java.util.LinkedHashMap" />
+	<import name="item"            class="com.fms.platform.appInterfaces.InterfaceInfo" />
+	
+	
+	
+	<!-- 系统对外开放的接口配置 -->
+	<xconfig>
+		
+	    <xparam id="AppRestfuls" key="name" this="AppRestfuls">
+			
+
+			
+			<item>
+				<innerNo>report.Role.Retrieve.A001</innerNo>
+				<name>report/role/queryRoleList</name>
+				<value>com.fms.report.appInterfaces.restful.RoleApiImpl</value>
+				<requestClass>com.fms.report.dto.RoleInDto</requestClass>
+				<responseClass>com.fms.report.dto.RoleOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>卡类别记录信息</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>report.Role.Retrieve.A002</innerNo>
+				<name>report/role/queryRoleListByPage</name>
+				<value>com.fms.report.appInterfaces.restful.RoleApiImpl</value>
+				<requestClass>com.fms.report.dto.RoleInDto</requestClass>
+				<responseClass>com.fms.report.dto.RoleOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>卡类别记录信息</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>report.Role.Retrieve.A003</innerNo>
+				<name>report/role/queryRole</name>
+				<value>com.fms.report.appInterfaces.restful.RoleApiImpl</value>
+				<requestClass>com.fms.report.dto.RoleInDto</requestClass>
+				<responseClass>com.fms.report.dto.RoleOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>卡类别记录信息</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>report.Role.Create.A001</innerNo>
+				<name>report/role/saveRole</name>
+				<value>com.fms.report.appInterfaces.restful.RoleApiImpl</value>
+				<requestClass>com.fms.report.dto.RoleInDto</requestClass>
+				<responseClass>com.fms.report.dto.RoleOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>卡类别记录信息</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>report.Role.Update.A001</innerNo>
+				<name>report/role/updateRole</name>
+				<value>com.fms.report.appInterfaces.restful.RoleApiImpl</value>
+				<requestClass>com.fms.report.dto.RoleInDto</requestClass>
+				<responseClass>com.fms.report.dto.RoleOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>卡类别记录信息</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			<item>
+				<innerNo>report.Role.Delete.A001</innerNo>
+				<name>report/role/deleteRole</name>
+				<value>com.fms.report.appInterfaces.restful.RoleApiImpl</value>
+				<requestClass>com.fms.report.dto.RoleInDto</requestClass>
+				<responseClass>com.fms.report.dto.RoleOutDto</responseClass>
+				<!-- TODO按照自定义的在此处 -->
+				<mappingError>130101(自定义)</mappingError>
+				<!-- TODO根据实际修改 -->
+				<comment>卡类别记录信息</comment>
+				<httpMethod>POST</httpMethod>
+				<version>1.0</version>
+			</item>
+			
+			
+			
+		</xparam>
+		
+	</xconfig>
+	
+</config>

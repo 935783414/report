@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+	<import name="sqls"            class="java.util.ArrayList" />
+	<import name="dataSource"      class="com.mchange.v2.c3p0.ComboPooledDataSource" />
+	<import name="dataSourceGroup" class="org.hy.common.db.DataSourceGroup" />
+	<import name="xparam"          class="java.util.Hashtable" />
+	<import name="item"            class="org.hy.common.app.Param" />
+
+
+
+	<!-- 数据库配置信息 -->
+	<sqls>
+
+		 <!--SQL Server report  add by malong-->
+		<!--<dataSource id="DS_report" >-->
+			<!--<driverClass>oracle.jdbc.driver.OracleDriver</driverClass>-->
+			<!--<jdbcUrl>jdbc:oracle:thin:@10.1.50.235:1521:avplan</jdbcUrl>-->
+			<!--<user>report</user>-->
+			<!--<password>report</password>-->
+			<!--<maxPoolSize>100</maxPoolSize>-->
+			<!--<initialPoolSize>1</initialPoolSize>-->
+			<!--<checkoutTimeout>10000</checkoutTimeout>-->
+		<!--</dataSource>-->
+
+		<dataSource id="DS_report" >
+			<driverClass>oracle.jdbc.driver.OracleDriver</driverClass>
+			<jdbcUrl>jdbc:oracle:thin:@10.1.50.100:1521:orcl</jdbcUrl>
+			<user>wyreport</user>
+			<password>wyreport</password>
+			<maxPoolSize>100</maxPoolSize>b
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+		<!-- 数据库连接池组 report  -->
+		<dataSourceGroup id="DSG_report">
+			<call name="add">
+				<dataSource ref="DS_report"/>
+			</call>
+		</dataSourceGroup>
+
+		<!-- SQL Server report  add by malong -->
+		<dataSource id="DS_calccloud_oracle" >
+			<driverClass>oracle.jdbc.driver.OracleDriver</driverClass>
+			<jdbcUrl>jdbc:oracle:thin:@10.1.50.100:1521:orcl</jdbcUrl>
+			<user>calccloud</user>
+			<password>wzyb9114</password>
+			<maxPoolSize>100</maxPoolSize>
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+		<!-- 数据库连接池组 report  -->
+		<dataSourceGroup id="DSG_calccloud_oracle">
+			<call name="add">
+				<dataSource ref="DS_calccloud_oracle"/>
+			</call>
+		</dataSourceGroup>
+
+
+		<!-- oracle数据库 -->
+		<dataSource id="DS_avplan01" >
+    			<driverClass>oracle.jdbc.driver.OracleDriver</driverClass>
+			<jdbcUrl>jdbc:oracle:thin:@10.1.50.235:1521:avplan</jdbcUrl>
+			<user>plm</user>
+			<password>plm</password>
+			<maxPoolSize>100</maxPoolSize>
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+
+		<!-- 数据库连接池组 -->
+		<dataSourceGroup id="DSG_avplan">
+			<call name="add">
+				<dataSource ref="DS_avplan01" />
+			</call>
+		</dataSourceGroup>
+
+		<!-- SQL Server数据库 capmsplan (wy基本数据库 sqlserver2000) add by malong -->
+		<dataSource id="DS_capmsplan1" >
+			<driverClass>net.sourceforge.jtds.jdbc.Driver</driverClass>
+			<jdbcUrl>jdbc:jtds:sqlserver://10.1.1.1:1433;DatabaseName=capmsplan</jdbcUrl>
+			<user>sa</user>
+			<password></password>
+			<maxPoolSize>100</maxPoolSize>
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+
+		<!-- 数据库连接池组 capmsplan (wy基本数据库 sqlserver2000) -->
+		<dataSourceGroup id="DSG_capmsplan">
+			<call name="add">
+				<dataSource ref="DS_capmsplan1" />
+			</call>
+		</dataSourceGroup>
+
+		<!-- SQL Server  MiddleWare add by xubo -->
+		<dataSource id="DS_middle" >
+			<driverClass>net.sourceforge.jtds.jdbc.Driver</driverClass>
+			<!-- 	<jdbcUrl>jdbc:jtds:sqlserver://10.1.50.89:1433;DatabaseName=middleWare</jdbcUrl> -->
+			<jdbcUrl>jdbc:jtds:sqlserver://10.1.50.90:1433;DatabaseName=middleWare</jdbcUrl>
+			<user>sa</user>
+			<password>sa123</password>
+			<maxPoolSize>100</maxPoolSize>
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+		<!-- 数据库连接池组  middleWare -->
+		<dataSourceGroup id="DSG_middle">
+			<call name="add">
+				<dataSource ref="DS_middle"/>
+			</call>
+		</dataSourceGroup>
+
+		<!-- SQL Server  69_master add by xubo -->
+		<dataSource id="DS_69_master" >
+			<driverClass>net.sourceforge.jtds.jdbc.Driver</driverClass>
+			<jdbcUrl>jdbc:jtds:sqlserver://10.1.50.69:1433;DatabaseName=warehouse</jdbcUrl>
+			<user>sa</user>
+			<password>sa123</password>
+			<maxPoolSize>100</maxPoolSize>
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+		<!-- 数据库连接池组  middleWare -->
+		<dataSourceGroup id="DSG_69_master">
+			<call name="add">
+				<dataSource ref="DS_69_master"/>
+			</call>
+		</dataSourceGroup>
+
+		<!-- SQL Server数据库 -->
+		<dataSource id="DS_brp01" if="SQLSERVER == DataSourceType.getValue">
+			<driverClass>net.sourceforge.jtds.jdbc.Driver</driverClass>
+			<jdbcUrl>jdbc:jtds:sqlserver://10.1.50.90:1433;DatabaseName=brp</jdbcUrl>
+			<user>sa</user>
+			<password>sa123</password>
+			<maxPoolSize>100</maxPoolSize>
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+
+		<!-- 数据库连接池组 -->
+		<dataSourceGroup id="DSG_brp">
+			<call name="add">
+				<dataSource ref="DS_brp01" />
+			</call>
+		</dataSourceGroup>
+
+
+		<!-- SQL Server report  add by malong -->
+		<dataSource id="DS_msg" >
+			<driverClass>oracle.jdbc.driver.OracleDriver</driverClass>
+			<jdbcUrl>jdbc:oracle:thin:@10.1.50.100:1521:orcl</jdbcUrl>
+			<user>Message</user>
+			<password>message0315</password>
+			<maxPoolSize>100</maxPoolSize>
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+		<!-- 数据库连接池组 report  -->
+		<dataSourceGroup id="DSG_msg">
+			<call name="add">
+				<dataSource ref="DS_msg"/>
+			</call>
+		</dataSourceGroup>
+
+
+		<!-- SQL Server数据库MES(制造执行系统) add by LHao -->
+		<dataSource id="DS_mes01" >
+			<driverClass>net.sourceforge.jtds.jdbc.Driver</driverClass>
+			<jdbcUrl>jdbc:jtds:sqlserver://10.1.50.94:1433;DatabaseName=mes_db</jdbcUrl>
+			<user>mes</user>
+			<password>mes123</password>
+			<maxPoolSize>100</maxPoolSize>
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+		<!-- 数据库连接池组 MES (制造执行系统) -->
+		<dataSourceGroup id="DSG_mes">
+			<call name="add">
+				<dataSource ref="DS_mes01" />
+			</call>
+		</dataSourceGroup>
+
+
+		<!--SQL Server数据库考勤系统-->
+        <dataSource id="DS_kaoqin">
+			<driverClass>net.sourceforge.jtds.jdbc.Driver</driverClass>
+			<jdbcUrl>jdbc:jtds:sqlserver://bjb.xuduan.vip:1433;DatabaseName=wzyb</jdbcUrl>
+			<user>dev</user>
+			<password>adpnx001</password>
+			<maxPoolSize>100</maxPoolSize>
+			<initialPoolSize>1</initialPoolSize>
+			<checkoutTimeout>10000</checkoutTimeout>
+		</dataSource>
+
+		<!-- 数据库连接池组 -->
+		<dataSourceGroup id="DSG_kaoqin">
+			<call name="add">
+				<dataSource ref="DS_kaoqin" />
+			</call>
+		</dataSourceGroup>
+
+	</sqls>
+
+</config>

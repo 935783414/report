@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<config>
+	<!-- 将该配置文件放到WEB-INF\db\avplan下 -->
+	<!-- 该配置文件为操作数据库sql语句定义，id为调用标识 -->
+	<!-- DSG_brp替换成自己配置的数据库组 -->
+	<!-- 
+	startup.Config.xml中添加
+	<item> 
+				<value>db/avplan/db.designInquery.xml</value>
+	</item>
+	-->
+	<import name="sqls"            class="java.util.ArrayList" />
+	<import name="sql"             class="org.hy.common.xml.XSQL" />
+    <import name="sqlGroup"        class="org.hy.common.xml.plugins.XSQLGroup" />
+
+
+    <!--  avplan-AVPLAN系统业务阶段查询接口模块的相关SQL -->
+	<sqls>
+		
+		  <sql id="XSQL_report_projectList">
+
+            <dataSourceGroup ref="DSG_avplan" />
+            <content>
+              <![CDATA[
+     select
+      distinct(q.orderno) xmorderno,q.name xmname,q.planstarttime xmplanstarttime,q.planfinishtime xmplanfinishtime,q.duration xmduration,
+      q.actualstarttime xmactualstarttime,q.actualfinishtime xmactualfinishtime,q.actualduration xmactualduration,xmoverdate,
+      w.planstarttime xsplanstarttime,w.planfinishtime xsplanfinishtime,w.duration xsduration,q.planstarttime xsactualstarttime,
+      to_char(w.actualfinishtime,'yyyy-mm-dd')  xsactualfinishtime,w.actualduration xsactualduration,xsoverdate,
+      e.planstarttime xbplanstarttime,e.planfinishtime xbplanfinishtime,e.duration xbduration,to_char(TRUNC(w.actualfinishtime+1),'yyyy-mm-dd') xbactualstarttime,
+      to_char(e.actualfinishtime,'yyyy-mm-dd') xbactualfinishtime,e.actualduration xbactualduration,xboverdate,
+      r.planstarttime cpplanstarttime,r.planfinishtime cpplanfinishtime,r.duration cpduration,to_char(TRUNC(e.actualfinishtime+1),'yyyy-mm-dd') cpactualstarttime,
+      to_char(r.actualfinishtime,'yyyy-mm-dd') cpactualfinishtime,r.actualduration cpactualduration,cpoverdate,
+      y.planstarttime gyplanstarttime,y.planfinishtime gyplanfinishtime,y.duration gyduration,to_char(TRUNC(r.actualfinishtime+2),'yyyy-mm-dd') gyactualstarttime,
+      to_char(y.actualfinishtime,'yyyy-mm-dd')gyactualfinishtime,y.actualduration gyactualduration,gyoverdate,
+      u.planstarttime sxplanstarttime,u.planfinishtime sxplanfinishtime,u.duration sxduration,to_char(TRUNC(e.actualfinishtime+1),'yyyy-mm-dd') sxactualstarttime,
+      to_char(u.actualfinishtime,'yyyy-mm-dd') sxactualfinishtime,u.actualduration sxactualduration,sxoverdate,
+      s.planstarttime lxplanstarttime,s.planfinishtime lxplanfinishtime,s.duration lxduration,to_char(TRUNC(y.actualfinishtime+1),'yyyy-mm-dd') lxactualstarttime,
+      to_char(q.lxactualfinishtime,'yyyy-mm-dd') lxactualfinishtime,s.actualduration lxactualduration,lxoverdate,
+      d.planstarttime wjplanstarttime,d.planfinishtime wjplanfinishtime,d.duration wjduration,to_char(TRUNC(u.actualfinishtime+1),'yyyy-mm-dd') wjactualstarttime,
+      to_char(d.actualfinishtime,'yyyy-mm-dd') wjactualfinishtime,d.actualduration wjactualduration,wjoverdate,
+      f.planstarttime bjplanstarttime,f.planfinishtime bjplanfinishtime,f.duration bjduration,to_char(TRUNC(y.actualfinishtime+1),'yyyy-mm-dd') bjactualstarttime,
+      to_char(f.actualfinishtime,'yyyy-mm-dd') bjactualfinishtime,f.actualduration bjactualduration,bjoverdate,
+      g.planstarttime szplanstarttime,g.planfinishtime szplanfinishtime,g.duration szduration,to_char(TRUNC(q.lxactualfinishtime+1),'yyyy-mm-dd') szactualstarttime,
+      to_char(g.actualfinishtime,'yyyy-mm-dd') szactualfinishtime,g.actualduration szactualduration,szoverdate,
+      j.planstarttime jzplanstarttime,j.planfinishtime jzplanfinishtime,j.duration jzduration,to_char(TRUNC(q.lxactualfinishtime+1),'yyyy-mm-dd') jzactualstarttime,
+      to_char(j.actualfinishtime,'yyyy-mm-dd') jzactualfinishtime,j.actualduration jzactualduration,jzoverdate,
+        k.planstarttime ljplanstarttime,k.planfinishtime ljplanfinishtime,k.duration ljduration,to_char(TRUNC(j.actualfinishtime+1),'yyyy-mm-dd') ljactualstarttime,
+        to_char(k.actualfinishtime,'yyyy-mm-dd') ljactualfinishtime,k.actualduration ljactualduration,ljoverdate,
+        l.planstarttime zpplanstarttime,l.planfinishtime zpplanfinishtime,l.duration zpduration,to_char(TRUNC(k.actualfinishtime+1),'yyyy-mm-dd') zpactualstarttime,
+        to_char(l.actualfinishtime,'yyyy-mm-dd') zpactualfinishtime,l.actualduration zpactualduration,zpoverdate,
+        m.planstarttime bgplanstarttime,m.planfinishtime bgplanfinishtime,m.duration bgduration,to_char(TRUNC(l.actualfinishtime+1),'yyyy-mm-dd') bgactualstarttime,
+        to_char(m.actualfinishtime,'yyyy-mm-dd')  bgactualfinishtime,m.actualduration bgactualduration,bgoverdate
+     from (
+       select  q.orderno,q.name,q.planstarttime,q.planfinishtime,q.duration,q.actualstarttime,to_char(q.actualfinishtime,'yyyy-mm-dd') actualfinishtime,q.actualduration,q.xmoverdate,s.lxactualfinishtime
+        from
+         (
+           select  p.orderno,p.name,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime ,t.duration,LONGTODATEADD1(t.actualstarttime) actualstarttime,
+                   to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,t.actualduration,(t.actualduration- t.duration) as xmoverdate
+          from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.parentiid = '-1')q
+         left join(
+           select p.orderno,p.name,max( to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd')) lxactualfinishtime
+            from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '零件计划下达' group by p.orderno,p.name order by p.orderno,p.name
+              ) s on q.orderno=s.orderno and q.name=s.name
+      order by q.orderno)q
+     ,(
+        select p.orderno,p.name,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,LONGTODATEADD1(t.actualstarttime) actualstarttime,
+                 t.duration,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,t.actualduration,(t.actualduration- t.duration) as xsoverdate
+          from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '销售商务阶段')w
+     ,(
+         select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,LONGTODATEADD1(t.actualstarttime) actualstarttime,
+               t.duration,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,t.actualduration,(t.actualduration- t.duration) as xboverdate
+         from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '项目计划编制')e
+      ,(
+          select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,LONGTODATEADD1(t.actualstarttime) actualstarttime,
+                  t.duration,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,t.actualduration,(t.actualduration- t.duration) as cpoverdate
+          from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '产品设计')r
+       ,(
+           select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.duration,t.actualduration,
+                  LONGTODATEADD1(t.actualstarttime) actualstarttime,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,(t.actualduration- t.duration) as gyoverdate
+           from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '工艺设计')y
+       ,(
+           select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.duration,t.actualduration,
+                  LONGTODATEADD1(t.actualstarttime) actualstarttime,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,(t.actualduration- t.duration) as sxoverdate
+           from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '商品计划下达')u
+        ,(
+            select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.duration,
+                    LONGTODATEADD1(t.actualstarttime) actualstarttime,t.actualduration,(t.actualduration- t.duration) as lxoverdate
+             from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '零件计划下达')s
+         ,(
+            select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.duration,t.actualduration,
+                    LONGTODATEADD1(t.actualstarttime) actualstarttime,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,(t.actualduration- t.duration) as wjoverdate
+            from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '外购附件')d
+         ,(
+            select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.duration,t.actualduration,
+                   LONGTODATEADD1(t.actualstarttime) actualstarttime,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,(t.actualduration- t.duration) as bjoverdate
+            from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '标准件')f
+         ,(
+            select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.actualduration,
+                   t.duration,LONGTODATEADD1(t.actualstarttime) actualstarttime,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,(t.actualduration- t.duration) as szoverdate
+            from AP_PLAN_TASK t join ap_plan_project p  ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '砂铸')g
+         ,(
+            select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.duration,t.actualduration,
+                  LONGTODATEADD1(t.actualstarttime) actualstarttime,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,(t.actualduration- t.duration) as jzoverdate
+            from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '精铸')j
+          ,(
+            select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.duration,t.actualduration,
+                    LONGTODATEADD1(t.actualstarttime) actualstarttime,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,(t.actualduration- t.duration) as ljoverdate
+            from AP_PLAN_TASK t join ap_plan_project p ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '零件精加工')k
+          ,(
+            select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.duration,t.actualduration,
+                   LONGTODATEADD1(t.actualstarttime) actualstarttime,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime,(t.actualduration- t.duration) as zpoverdate
+            from AP_PLAN_TASK t join ap_plan_project p  ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '装配入库')l
+          ,(
+            select p.orderno,p.name,t.name name1,LONGTODATEADD1(t.planstarttime) planstarttime,LONGTODATEADD1(t.planfinishtime) planfinishtime,t.duration,t.actualduration,
+                 LONGTODATEADD1(t.actualstarttime) actualstarttime,to_date(LONGTODATEADD1(t.actualfinishtime),'yyyy-mm-dd') actualfinishtime, (t.actualduration- t.duration) as bgoverdate
+            from AP_PLAN_TASK t join ap_plan_project p  ON t.PROJIID = p.INNERID    and p.STATENAME = '已完成' and t.name = '包装发运阶段' )m
+          where q.orderno=w.orderno and q.name=w.name
+                   and w.orderno=e.orderno and w.name=e.name
+                   and e.orderno=r.orderno and e.name=r.name
+                   and r.orderno=y.orderno and r.name=y.name
+                   and y.orderno=u.orderno and y.name=u.name
+                   and u.orderno=s.orderno and u.name=s.name
+                   and s.orderno=d.orderno and s.name=d.name
+                   and d.orderno=f.orderno and d.name=f.name
+                   and f.orderno=g.orderno and f.name=g.name
+                   and g.orderno=j.orderno and g.name=j.name
+                   and j.orderno=k.orderno and j.name=k.name
+                   and k.orderno=l.orderno and k.name=l.name
+                   and l.orderno=m.orderno and l.name=m.name
+                   <[ AND q.actualstarttime >= ':xmactualstarttime' ]>
+                   <[ AND q.actualfinishtime <= ':xmactualfinishtime' ]>
+                ]]>
+                    order by  q.orderno 
+           </content>  
+            
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.ProjectDept</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>    
+  
+		</sqls>
+		</config>

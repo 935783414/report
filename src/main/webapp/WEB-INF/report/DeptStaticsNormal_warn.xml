@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="template"        class="org.hy.common.report.bean.RTemplate" />
+
+
+
+	<!-- 报表模板配置信息 -->
+	<xconfig>
+		<template id="ReportHead_warn">
+			<name>部门合计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>0</titleBeginRow>
+			<titleEndRow>1</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>2</dataBeginRow>
+			<dataEndRow>2</dataEndRow>
+
+			<!-- 定义报表合计在模板中位置 -->
+			<!--<totalBeginRow>14</totalBeginRow>-->
+			<!--<totalEndRow>0</totalEndRow>-->
+
+
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptHead</dataClass>
+
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorListener">
+					<valueName>taskInfo</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+		<template id="ReportDesign_warn">
+			<name>研发部报表统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>11</titleBeginRow>
+			<titleEndRow>15</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>16</dataBeginRow>
+			<dataEndRow>16</dataEndRow>
+
+			<!-- 定义报表合计在模板中位置 -->
+			<!--<totalBeginRow>14</totalBeginRow>-->
+			<!--<totalEndRow>0</totalEndRow>-->
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+		<template id="ReportTechnics_warn">
+			<name>工艺部报表统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>18</titleBeginRow>
+			<titleEndRow>22</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>23</dataBeginRow>
+			<dataEndRow>23</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+
+		<template id="ReportSandCasting_warn">
+			<name>砂铸部报表统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>25</titleBeginRow>
+			<titleEndRow>29</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>30</dataBeginRow>
+			<dataEndRow>30</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+		<template id="ReportPrecisionCasting_warn">
+			<name>精铸部报表统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>32</titleBeginRow>
+			<titleEndRow>36</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>37</dataBeginRow>
+			<dataEndRow>37</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+		<template id="ReportPurchasing_warn">
+			<name>采购部报表统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>39</titleBeginRow>
+			<titleEndRow>43</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>44</dataBeginRow>
+			<dataEndRow>44</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+		<template id="ReportGlobal_warn">
+			<name>调节阀部门统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>46</titleBeginRow>
+			<titleEndRow>50</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>51</dataBeginRow>
+			<dataEndRow>51</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+
+		<template id="ReportBoll_warn">
+			<name>球阀部门统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>53</titleBeginRow>
+			<titleEndRow>57</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>58</dataBeginRow>
+			<dataEndRow>58</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+
+
+		<template id="ReportButterfly_warn">
+			<name>蝶阀部门统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>60</titleBeginRow>
+			<titleEndRow>64</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>65</dataBeginRow>
+			<dataEndRow>65</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+
+
+		<template id="ReportAdvanced_warn">
+			<name>高端阀部门统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>67</titleBeginRow>
+			<titleEndRow>71</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>72</dataBeginRow>
+			<dataEndRow>72</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+
+
+
+
+		<template id="ReportControlled_warn">
+			<name>控制器件部门统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>74</titleBeginRow>
+			<titleEndRow>78</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>79</dataBeginRow>
+			<dataEndRow>79</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+
+		<template id="ReportCv3000_warn">
+			<name>CV3000事业部部门统计</name>
+
+			<!-- Excel模板文件所在地方。并通过扩展名识别文件格式类型 -->
+			<excelFileName>webhome:WEB-INF/report/DeptStaticsNormal_warn.xlsx</excelFileName>
+
+			<!-- 定义报表标题在模板中位置 -->
+			<titleBeginRow>81</titleBeginRow>
+			<titleEndRow>85</titleEndRow>
+
+			<!-- 定义报表数据在模板中位置 -->
+			<dataBeginRow>86</dataBeginRow>
+			<dataEndRow>86</dataEndRow>
+
+			<!-- 自动行高 -->
+			<addAutoHeight>orderno</addAutoHeight>
+
+			<!-- 定义报表数据对应的Java类型 -->
+			<dataClass>com.fms.avplan.deptExamReport.report.DeptReport</dataClass>
+			<!-- 动态变色的监听器 -->
+			<call name="addListener">
+				<listener class="com.fms.avplan.deptExamReport.report.ColorAppealListener">
+					<valueName>appeal</valueName>
+				</listener>
+			</call>
+		</template>
+	</xconfig>
+
+</config>

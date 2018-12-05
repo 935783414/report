@@ -1,0 +1,32 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+    <id>brp</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <baseDirectory>${project.artifactId}</baseDirectory>
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <dependencySets>
+    <dependencySet>
+        <!-- unpack the webapp as root application -->
+        <scope>runtime</scope>
+        <unpack>true</unpack>
+        <includes>
+            <include>${groupId}:${artifactId}:war</include>
+        </includes>
+    </dependencySet>
+    </dependencySets>
+    <files>
+        <file>
+            <source>/env/sys.DB.Config.xml</source>
+            <outputDirectory>WEB-INF/</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+         <!--<file>-->
+            <!--<source>/env/job.Config.xml</source>-->
+            <!--<outputDirectory>WEB-INF/</outputDirectory>-->
+            <!--<filtered>true</filtered>-->
+        <!--</file>-->
+    </files>
+</assembly>

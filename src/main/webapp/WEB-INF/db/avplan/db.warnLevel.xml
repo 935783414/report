@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+	<!-- 将该配置文件放到WEB-INF\db\avplan下 -->
+	<!-- 该配置文件为操作数据库sql语句定义，id为调用标识 -->
+	<!-- DSG_brp替换成自己配置的数据库组 -->
+	<!--
+	startup.Config.xml中添加
+	<item>
+				<value>db/avplan/db.designInquery.xml</value>
+	</item>
+	-->
+	<import name="sqls"            class="java.util.ArrayList" />
+	<import name="sql"             class="org.hy.common.xml.XSQL" />
+	<import name="sqlGroup"        class="org.hy.common.xml.plugins.XSQLGroup" />
+
+    <!--  avplan-AVPLAN系统业务阶段查询接口模块的相关SQL -->
+	<sqls>
+
+		<!-- 查询研发部任务完成度-->
+		<sql id="SELECT_FINISH_PERCENT_Design">
+
+			<dataSourceGroup ref="DSG_avplan" />
+
+			<content>
+				<![CDATA[
+					SELECT
+						T .FINISHPERCENTAGE
+					FROM
+						AP_PLAN_TASK T,
+						AP_PLAN_PROJECT P
+					WHERE
+						T .PROJIID = P .INNERID
+					AND T . NAME = (
+						':suborderno' || '/' || ':productclass'
+					)
+				]]>
+			</content>
+
+			<result>
+				<row>java.util.HashMap</row>
+				<cfill>put(colName ,colValue)</cfill>
+			</result>
+		</sql>
+
+
+	</sqls>
+
+</config>

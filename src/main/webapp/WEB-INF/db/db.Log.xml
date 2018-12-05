@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+	<import name="sqls"            class="java.util.ArrayList" />
+	<import name="sql"             class="org.hy.common.xml.XSQL" />
+
+
+
+    <!-- 日志模块的相关SQL -->
+	<sqls>
+
+		<!-- 非注册者的：新增操作日志信息 -->
+		<sql id="XSQL_LogInfo_Add"> 
+		
+			<dataSourceGroup ref="DSG_brp" />
+			
+			<content>
+				<![CDATA[
+					INSERT  INTO TLog
+					       (
+					        id
+                           ,sysID
+                           ,logID
+                           ,logType
+                           ,logClass
+                           ,logContent
+                           ,logInfo
+                           ,operatorNo
+                           ,operationType
+                           ,operationRemark
+                           ,operationTime
+                           ,waitTime
+                           )
+                    VALUES (
+					        ':id'
+                           ,':sysID'
+                           ,':logID'
+                           ,':logType'
+                           ,':logClass'
+                           ,':logContent'
+                           ,':logInfo'
+                           ,':operatorNo'
+                           ,':operationType'
+                           ,':operationRemark'
+                           ,':operationTime'
+                           ,':waitTime'
+                           )
+				]]>
+			</content>
+			
+		</sql>
+		
+	</sqls>
+	
+</config>

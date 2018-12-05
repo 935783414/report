@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="xparam"          class="java.util.ArrayList" />
+	<import name="item"            class="org.hy.common.app.Param" />
+	
+	
+	
+	<!-- 大纲目录 -->
+	<xconfig>
+		
+	    <xparam id="AnalysesCatalogue" this="AnalysesCatalogue">
+	    
+	    	<item>
+	            <name>接口列表</name>
+				<comment></comment>
+				<value><![CDATA[ /../services/server/showInterface ]]></value>
+	        </item>
+	    
+	    	<item>
+	            <name>接口访问量的概要统计</name>
+				<comment></comment>
+				<value><![CDATA[ /../services/server/showTotal ]]></value>
+	        </item>
+
+		</xparam>
+		
+	</xconfig>
+	
+</config>

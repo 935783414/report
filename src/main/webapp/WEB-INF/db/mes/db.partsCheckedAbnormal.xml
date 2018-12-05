@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+    <!-- 将该配置文件放到WEB-INF\db\mes下 -->
+    <!-- 该配置文件为操作数据库sql语句定义，id为调用标识 -->
+    <!-- DSG_brp替换成自己配置的数据库组 -->
+    <!--
+    startup.Config.xml中添加
+    <item>
+                <value>db/mes/db.partsCheckedAbnormal.xml</value>
+    </item>
+    -->
+    <import name="sqls" class="java.util.ArrayList"/>
+    <import name="sql" class="org.hy.common.xml.XSQL"/>
+    <import name="sqlGroup" class="org.hy.common.xml.plugins.XSQLGroup"/>
+
+
+    <sqls>
+
+        <!--查询不分批情况的零件完工检测异常数据-->
+        <sql id="XSQL_mes_checked_abnormal_query">
+            <dataSourceGroup ref="DSG_mes"/>
+
+            <content>
+                <![CDATA[
+
+					SELECT
+                        aaa.id,
+                        aaa.departCode,
+                        aaa.planCode,
+                        aaa.itemCode,
+                        aaa.processNo,
+                        aaa.processName,
+                        aaa.endFlag,
+                        aaa.saveTime,
+                        aaa.checkPerson,
+                        aaa.batchCheckFlag,
+                        aaa.planQTY,
+                        aaa.receiveQTY,
+                        aaa.samplingQty,
+                        aaa.batchCheckQty,
+                        aaa.qualifiedQty,
+                        aaa.unqualifiedQty,
+                        aaa.数量不一致 qtyDifferent,
+                        aaa.分批数量不一致 receiveDifferentChecked,
+                        aaa.计划数量不一致 receiveDifferentPlan,
+                        aaa.完成情况 completeInfo
+                    FROM(
+                        SELECT
+                            id,
+                            departCode,
+                            planCode,
+                            itemCode,
+                            processNo,
+                            processName,
+                            endFlag,
+                            saveTime,
+                            checkPerson,
+                            batch_check_flag batchCheckFlag,
+                            planQTY,
+                            receiveQTY,
+                            samplingNum samplingQty,
+                            batch_check_qty batchCheckQty,
+                            qualified_qty qualifiedQty,
+                            unqualified_qty unqualifiedQty,
+                            case when batch_check_qty=qualified_qty+unqualified_qty then '正常' else '异常' end as 数量不一致,
+                            case when receiveQTY=batch_check_qty then '正常' else '异常' end as 分批数量不一致,
+                            case when receiveQTY=planQTY then '正常' else '异常' end as 计划数量不一致,
+                            case when receiveQTY=batch_check_qty and endFlag='1' then '已完成'
+                                     when receiveQTY>batch_check_qty and endFlag='2' then '未完成'
+                                     when batch_check_qty=0 and endFlag='0' then '未开始'
+                                     else '异常' end as 完成情况
+                            FROM
+                                parts_processInfor
+                            WHERE 1=1
+                                <[ AND LEFT (saveTime, 10) >= ':startDate' ]>
+                                <[ AND LEFT (saveTime, 10) <= ':endDate' ]>
+                                <[ AND planCode = ':planCode' ]>
+                                <[ AND departCode = ':departCode' ]>
+                                AND batch_check_flag = '0'
+                        ) aaa
+                    WHERE aaa.数量不一致 = '异常'
+                                OR aaa.分批数量不一致 = '异常'
+                                OR aaa.计划数量不一致 = '异常'
+                                OR aaa.完成情况 = '异常'
+
+				]]>
+            </content>
+            <result>
+                <row>com.fms.mes.model.PartsCheckedAbnormal</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+
+        <!--查询分批情况的零件完工检测异常数据-->
+        <sql id="XSQL_mes_checked_abnormal_batch_query">
+            <dataSourceGroup ref="DSG_mes"/>
+
+            <content>
+                <![CDATA[
+
+                    SELECT
+                        aaa.id,
+                        aaa.departCode,
+                        aaa.planCode,
+                        aaa.itemCode,
+                        aaa.processNo,
+                        aaa.processName,
+                        aaa.endFlag,
+                        aaa.saveTime,
+                        aaa.checkPerson,
+                        aaa.batchCheckFlag,
+                        aaa.planQTY,
+                        aaa.receiveQTY,
+                        aaa.samplingQty,
+                        aaa.batchCheckQty,
+                        aaa.qualifiedQty,
+                        aaa.unqualifiedQty,
+                        aaa.batchCheckQtySum,
+                        aaa.qualifiedQtySum,
+                        aaa.samplingQtySum,
+                        aaa.unqualifiedQtySum,
+                        aaa.数量不一致 qtyDifferent,
+                        aaa.分批数量不一致 receiveDifferentChecked,
+                        aaa.计划数量不一致 receiveDifferentPlan,
+                        aaa.完成情况 completeInfo
+                    FROM(
+                        SELECT
+                            a.id,
+                            a.departCode,
+                            a.planCode,
+                            a.itemCode,
+                            a.processNo,
+                            a.saveTime,
+                            a.checkPerson,
+                            a.processName,
+                            a.samplingNum samplingQty,
+                            a.batch_check_flag batchCheckFlag,
+                            a.planQTY,
+                            a.receiveQTY,
+                            a.batch_check_qty batchCheckQty,
+                            b.batch_qty batchCheckQtySum,
+                            a.qualified_qty qualifiedQty,
+                            b.qualified_qty qualifiedQtySum,
+                            a.unqualified_qty unqualifiedQty,
+                            b.unqualified_qty unqualifiedQtySum,
+                            b.sample_qty samplingQtySum,
+                            a.endFlag,
+                            case when a.batch_check_qty=a.qualified_qty+a.unqualified_qty and b.batch_qty=b.qualified_qty+b.unqualified_qty then '正常' else '异常' end as 数量不一致,
+                            case when a.batch_check_qty=b.batch_qty then '正常' else '异常' end as 分批数量不一致,
+                            case when a.receiveQTY<=a.planQTY then '正常' else '异常' end as 计划数量不一致,
+                            case when a.receiveQTY=a.batch_check_qty and a.endFlag='1' then '已完成'
+                                     when a.receiveQTY>a.batch_check_qty and a.endFlag='2' then '未完成'
+                                     when a.batch_check_qty=0 and a.endFlag='0' then '未开始'
+                                     else '异常' end as 完成情况
+                        FROM
+                            parts_processInfor a inner join
+                            (
+                                select plan_code,process_no,item_code,receive_qty,sum(batch_qty) batch_qty,sum(sample_qty) sample_qty,sum(qualified_qty) qualified_qty,sum(unqualified_qty) unqualified_qty from parts_process_batch_check_detail
+                                where  giveup_flag='0' group by plan_code,process_no,item_code,receive_qty
+                            ) b on a.planCode=b.plan_code and a.processNo=b.process_no
+                        WHERE 1=1
+                                <[ AND LEFT (saveTime, 10) >= ':startDate' ]>
+                                <[ AND LEFT (saveTime, 10) <= ':endDate' ]>
+                                <[ AND planCode = ':planCode' ]>
+                                <[ AND departCode = ':departCode' ]>
+                                AND batch_check_flag = '1'
+                        ) aaa
+                    WHERE aaa.数量不一致 = '异常'
+                                OR aaa.分批数量不一致 = '异常'
+                                OR aaa.计划数量不一致 = '异常'
+                                OR aaa.完成情况 = '异常'
+
+				]]>
+            </content>
+            <result>
+                <row>com.fms.mes.model.PartsCheckedAbnormal</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+        </sql>
+
+        <sql id="XSQL_mes_departmentInfo_query">
+
+            <dataSourceGroup ref="DSG_mes"/>
+
+            <content>
+
+                <![CDATA[
+
+                    SELECT departCode,departName FROM sys_departmentInformation WHERE 1=1 <[ AND departType = ':departType' ]>
+
+                ]]>
+
+            </content>
+
+            <result>
+                <row>java.util.HashMap</row>
+                <cfill>put(colName ,colValue)</cfill>
+            </result>
+        </sql>
+
+    </sqls>
+
+</config>

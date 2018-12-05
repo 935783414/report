@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+	<!-- 将该配置文件放到WEB-INF\db\avplan下 -->
+	<!-- 该配置文件为操作数据库sql语句定义，id为调用标识 -->
+	<!-- DSG_brp替换成自己配置的数据库组 -->
+	<!--
+	startup.Config.xml中添加
+	<item>
+				<value>db/avplan/db.designInquery.xml</value>
+	</item>
+	-->
+	<import name="sqls"            class="java.util.ArrayList" />
+	<import name="sql"             class="org.hy.common.xml.XSQL" />
+	<import name="sqlGroup"        class="org.hy.common.xml.plugins.XSQLGroup" />
+
+    <!--  avplan-AVPLAN系统业务阶段查询接口模块的相关SQL -->
+	<sqls>
+
+		<!-- 将结果保存到DEPT_WARN_REPORT中-->
+		<sql id="XSQL_avplan_DEPT_WARN_REPORT_insert">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+				INSERT INTO DEPT_WARN_REPORT (
+								 innerid
+								,orderno
+								,specailproductcode
+								,suborderno
+								,productclass
+								,producttype
+								,departname
+								,planstarttime
+								,planfinishtime
+								,flag
+								,status
+								,stime
+								,ftime
+								,countOrderNo
+								,putype
+								,planpercent
+								,orderpercent
+								,receivepercent
+								,checkpercent
+								,inpercent
+								,plan_no
+								,ZXJG
+								,FJ
+								,required_qty
+								,in_inv_count
+								,gytype
+								,part_plan_no
+								,planno
+								,itemcode
+								,itemname
+								,cl
+								,single
+								,zstime
+								,zftime
+								,znum
+								,planqty
+								,zjtcs
+								,zjwgs
+								,finishqty
+								,reason
+								,isExam
+								,createtime
+								,reportdate
+								,unitname
+								,appeal
+								,warn_level
+								,finish_percent
+								,pt_count
+                  				,last_pt_date
+								)
+								VALUES
+								(
+								  :innerid
+								 ,:orderno
+								 ,:specailproductcode
+								 ,:suborderno
+								 ,:productclass
+								 ,:producttype
+								 ,:departname
+								 ,:planstarttime
+								 ,:planfinishtime
+								 ,:flag
+								 ,:status
+								 ,:stime
+								 ,:ftime
+								 ,:countOrderNo
+								 ,:putype
+								 ,:planpercent
+								 ,:orderpercent
+								 ,:receivepercent
+								 ,:checkpercent
+								 ,:inpercent
+								 ,:plan_no
+								 ,:zxjg
+								 ,:fj
+								 ,:required_qty
+								 ,:in_inv_count
+								 ,:gytype
+								 ,:part_plan_no
+								 ,:planno
+								 ,:itemcode
+								 ,:itemname
+								 ,:cl
+								 ,:single
+								 ,:zstime
+								 ,:zftime
+								 ,:znum
+								 ,:planqty
+								 ,:zjtcs
+								 ,:zjwgs
+								 ,:finishqty
+								 ,:reason
+								 ,:isExam
+								 ,:createtime
+								 ,:reportdate
+								 ,:unitname
+								 ,:appeal
+								 ,:warn_level
+								 ,:finish_percent
+								 ,:pt_count
+                  				 ,:last_pt_date
+								)
+
+
+
+				]]>
+			</content>
+
+			<result>
+				<row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+
+		</sql>
+
+
+		<!-- 从报表服务器查询已经注明原因的报表-->
+		<sql id="XSQL_avplan_reportlist_DEPT_WARN_REPORT">
+
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+				select * from DEPT_WARN_REPORT
+				where unitname=':unitname'
+				and   reportdate=':reportdate'
+				order by planfinishtime,orderno,putype,part_plan_no
+				]]>
+			</content>
+
+			<result>
+				<row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+
+		</sql>
+
+
+        <sql id="XSQL_report_deptexamList_warn">
+
+            <dataSourceGroup ref="DSG_report" />
+
+            <content>
+                <![CDATA[
+					SELECT
+					    innerid
+					 	,orderno
+						,specailproductcode
+						,suborderno
+						,productclass
+						,producttype
+						,departname
+						,planstarttime
+						,planfinishtime
+						,flag
+						,status
+						,stime
+						,ftime
+						,countOrderNo
+						,putype
+						,planpercent
+						,orderpercent
+						,receivepercent
+						,checkpercent
+						,inpercent
+						,plan_no
+						,ZXJG
+						,FJ
+						,required_qty
+						,in_inv_count
+						,gytype
+						,part_plan_no
+						,planno
+						,itemcode
+						,itemname
+						,cl
+						,single
+						,zstime
+						,zftime
+						,znum
+						,planqty
+						,zjtcs
+						,zjwgs
+						,finishqty
+						,reason
+						,isExam
+						,createtime
+						,reportdate
+						,unitname
+						,appeal
+						,pt_count
+						,last_pt_date
+						,ROWNUM rn
+						,WARN_LEVEL
+						,finish_percent
+					 FROM DEPT_WARN_REPORT
+					 WHERE 1=1
+					 <[ AND  unitname = ':unitname' ]>
+					  <[ AND reportdate = ':reportdate' ]>
+					  <[ AND orderno = ':orderno' ]>
+					  <[
+						  AND (to_date(planfinishtime,'yyyy-mm-dd'))<( trunc(CREATETIME) + :warnDays+1)
+						  AND (to_date(planfinishtime,'yyyy-mm-dd'))>trunc(CREATETIME)
+					  ]>
+					 ORDER BY planfinishtime,orderno,putype,part_plan_no
+
+				]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+
+		<sql id="XSQL_report_reportDateList_warn">
+
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+					SELECT
+						reportdate
+					 FROM DEPT_WARN_REPORT
+					 WHERE 1=1
+					 GROUP BY reportdate
+					 ORDER BY reportdate desc
+
+				]]>
+			</content>
+
+			<result>
+				<row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+
+		</sql>
+
+
+
+        <sql id="XSQL_report_queryDepts_warn">
+
+            <dataSourceGroup ref="DSG_report" />
+
+            <content>
+                <![CDATA[
+					SELECT
+					   unitname
+					 FROM DEPT_WARN_REPORT
+					 WHERE 1=1
+					 group by unitname
+				]]>
+            </content>
+
+            <result>
+                <row>com.fms.avplan.deptExamReport.report.DeptReport</row>
+                <cfill>setter(colValue)</cfill>
+            </result>
+
+        </sql>
+
+		<sql id="XSQL_report_updateList_warn">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+				   UPDATE DEPT_WARN_REPORT
+				   SET
+				      reason = ':reason'
+				      ,isExam = ':isExam'
+				      ,appeal = ':appeal'
+				   WHERE innerid = ':innerid'
+				]]>
+			</content>
+			<result>
+				<row>java.util.HashMap</row>
+				<cfill>put(colName ,colValue)</cfill>
+			</result>
+		</sql>
+
+		<sql id="XSQL_report_delete_warn">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+				   DELETE FROM DEPT_WARN_REPORT
+				   WHERE 1=1
+				    AND reportdate = ':reportdate'
+				]]>
+			</content>
+
+		</sql>
+
+		<sql id="XSQL_report_delete_2_warn">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+				   DELETE FROM DEPT_WARN_REPORT_EXT
+				   WHERE 1=1
+				    AND reportdate = ':reportdate'
+				]]>
+			</content>
+
+		</sql>
+
+
+
+		<!--查考核原因-->
+		<sql id="XSQL_delaying_reason">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+
+					SELECT reason, ISEXAM, appeal
+					FROM DEPT_WARN_REPORT
+					WHERE SUBORDERNO = ':suborderno'
+						AND PRODUCTTYPE = ':producttype'
+						AND unitname = ':unitname'
+					ORDER BY rownum DESC
+				]]>
+			</content>
+			<result>
+				<row>java.util.HashMap</row>
+				<cfill>put(colName ,colValue)</cfill>
+			</result>
+		</sql>
+
+
+		<!--插入考核原因-->
+		<sql id="XSQL_delaying_reason_insert_warn">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+
+			 INSERT INTO DEPT_WARN_REPORT_EXT
+                   (
+                    innerid
+                   ,reason
+                   ,orderno
+                   ,suborderno
+                   ,reportdate
+                   ,unitname
+                   )
+             VALUES (
+                    ':innerid'
+                   , EMPTY_CLOB()
+                   ,':orderno'
+                   ,':suborderno'
+                   ,':reportdate'
+                   ,':unitname'
+                   )
+				]]>
+			</content>
+			<result>
+				<row>java.util.HashMap</row>
+				<cfill>put(colName ,colValue)</cfill>
+			</result>
+		</sql>
+
+
+		<!--查考核原因-->
+		<sql id="XSQL_delaying_reason_updateclob_warn">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+
+				    SELECT  reason
+					    FROM  DEPT_WARN_REPORT_EXT
+					WHERE  innerid = ':innerid'
+					    FOR  UPDATE
+				]]>
+			</content>
+			<result>
+				<row>java.util.HashMap</row>
+				<cfill>put(colName ,colValue)</cfill>
+			</result>
+		</sql>
+
+		<sql id="XSQL_delaying_reason_selectclob_warn">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+
+				    SELECT
+						reason,
+						orderno,
+						suborderno,
+						unitname
+					FROM  DEPT_WARN_REPORT_EXT
+					WHERE innerid = ':innerid'
+				]]>
+			</content>
+			<result>
+				<row>java.util.HashMap</row>
+				<cfill>put(colName ,colValue)</cfill>
+			</result>
+		</sql>
+
+
+		<sql id="XSQL_DEPT_WARN_REPORT_selectById">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+
+				    SELECT
+						*
+					FROM  DEPT_WARN_REPORT
+					WHERE innerid = ':innerid'
+				]]>
+			</content>
+			<result>
+				<row>java.util.HashMap</row>
+				<cfill>put(colName ,colValue)</cfill>
+			</result>
+		</sql>
+
+
+		<!--查考核原因-->
+		<sql id="XSQL_QUERY_DEPT_WARN_REPORT_BY_ROWNUM">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+				<![CDATA[
+
+					SELECT *
+					FROM DEPT_WARN_REPORT
+					WHERE  1=1
+					 	<[ AND	orderno            	=':orderno' ]>
+						<[ AND	specailproductcode 	=':specailproductcode' ]>
+						<[ AND	suborderno	=':suborderno' ]>
+						<[ AND	productclass	=':productclass' ]>
+						<[ AND	producttype	=':producttype' ]>
+						<[ AND	departname	=':departname' ]>
+						<[ AND	planstarttime	=':planstarttime' ]>
+						<[ AND	planfinishtime	=':planfinishtime' ]>
+						<[ AND	flag	=':flag' ]>
+						<[ AND	status	=':status' ]>
+						<[ AND	stime	=':stime' ]>
+						<[ AND	ftime	=':ftime' ]>
+						<[ AND	countOrderNo	=':countOrderNo' ]>
+						<[ AND	putype	=':putype' ]>
+						<[ AND	planpercent	=':planpercent' ]>
+						<[ AND	orderpercent	=':orderpercent' ]>
+						<[ AND	receivepercent	=':receivepercent' ]>
+						<[ AND	checkpercent	=':checkpercent' ]>
+						<[ AND	inpercent	=':inpercent' ]>
+						<[ AND	plan_no	=':plan_no' ]>
+						<[ AND	ZXJG	=':ZXJG' ]>
+						<[ AND	FJ	=':FJ' ]>
+						<[ AND	required_qty	=':required_qty' ]>
+						<[ AND	in_inv_count	=':in_inv_count' ]>
+						<[ AND	gytype	=':gytype' ]>
+						<[ AND	part_plan_no	=':part_plan_no' ]>
+						<[ AND	planno	=':planno' ]>
+						<[ AND	itemcode	=':itemcode' ]>
+						<[ AND	itemname	=':itemname' ]>
+						<[ AND	cl	=':cl' ]>
+						<[ AND	single	=':single' ]>
+						<[ AND	zstime	=':zstime' ]>
+						<[ AND	zftime	=':zftime' ]>
+						<[ AND	znum	=':znum' ]>
+						<[ AND	planqty	=':planqty' ]>
+						<[ AND	zjtcs	=':zjtcs' ]>
+						<[ AND	zjwgs	=':zjwgs' ]>
+						<[ AND	finishqty	=':finishqty' ]>
+						<[ AND	reason	=':reason' ]>
+						<[ AND	isExam	=':isExam' ]>
+						<[ AND	createtime	=':createtime' ]>
+						<[ AND	reportdate	=':reportdate' ]>
+						<[ AND	unitname	=':unitname' ]>
+
+					ORDER BY rownum DESC
+				]]>
+			</content>
+			<result>
+				<row>java.util.HashMap</row>
+				<cfill>put(colName ,colValue)</cfill>
+			</result>
+		</sql>
+
+		<!--以下为装配入库的原因计算-->
+		<!--查询以前所有延期的原因-->
+		<sql id="XSQL_alldelaying_reason_warn">
+			<dataSourceGroup ref="DSG_report" />
+
+			<content>
+                <![CDATA[
+                SELECT * FROM (
+                    SELECT
+                      a.ORDERNO,a.SUBORDERNO,a.PART_PLAN_NO,a.PUTYPE,
+                      '<strong>'||a.putype ||'</strong>：<br/>'||a.reason||NVL2(a.isExam,'<i>('||a.isExam||')</i>','')  purchase,
+                      '<strong>'||a.part_plan_no ||'('||itemcode||')</strong>：'||a.reason||NVL2(a.isExam,'<i>('||a.isExam||')</i>','') casting,
+                      '<strong>'||a.suborderno ||'('||specailproductcode||')</strong>：'||a.reason||NVL2(a.isExam,'<i>('||a.isExam||')</i>','') design,
+                      '<strong>'||a.suborderno ||'('||specailproductcode||')</strong>：'||a.reason||NVL2(a.isExam,'<i>('||a.isExam||')</i>','') tech,
+                      '<strong>'||a.suborderno ||'</strong>：<br/>'||a.reason||NVL2(a.isExam,'<i>('||a.isExam||')</i>','') maching,
+                      unitname,
+                      specailproductcode,
+                      productclass,
+                      itemcode,
+                      producttype,
+                      isExam
+                    FROM (
+                           SELECT
+                             ROW_NUMBER()
+                             OVER (
+                               PARTITION BY putype, orderno, producttype, part_plan_no, specailproductcode, productclass, itemcode, suborderno,unitname
+                               ORDER BY createtime desc ) rn,
+                             putype,
+                             reason,
+                             orderno,
+                             suborderno,
+                             createtime,
+                             producttype,
+                             part_plan_no,
+                             specailproductcode,
+                             productclass,
+                             itemcode,
+                             unitname,
+                             isExam
+                           FROM DEPT_WARN_REPORT WHERE
+                             orderno = ':orderno'
+                         ) a
+                    WHERE a.rn = 1 AND a.reason <> 'null'
+              ) b
+               ORDER BY b.suborderno,b.part_plan_no,b.putype
+
+				]]>
+			</content>
+			<result>
+				<row>java.util.HashMap</row>
+				<cfill>put(colName ,colValue)</cfill>
+			</result>
+		</sql>
+	</sqls>
+
+</config>

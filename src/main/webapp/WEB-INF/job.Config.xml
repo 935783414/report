@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="job"             class="org.hy.common.thread.Job" />
+	<import name="jobs"            class="org.hy.common.thread.Jobs" />
+
+
+
+	<!-- 任务配置信息 -->
+	<xconfig>
+
+        <job id="JOB_saveDelayingExamDatas">
+            <code>JOB_saveDelayingExamDatas</code>
+            <name>每晚21点出考核数据到数据库</name>
+            <intervalType ref="this.$IntervalType_Day"/>
+            <intervalLen>1</intervalLen>
+            <startTime>2018-07-01 21:00:00</startTime>
+            <xjavaID>deptExamReportService</xjavaID>
+            <methodName>saveDatas</methodName>
+            <desc>每晚21点出考核数据到数据库</desc>
+            <initExecute>false</initExecute>
+        </job>
+
+        <job id="JOB_createWarnData">
+            <code>JOB_createWarnData</code>
+            <name>每晚21点出预警数据到数据库</name>
+            <intervalType ref="this.$IntervalType_Day"/>
+            <intervalLen>1</intervalLen>
+            <startTime>2018-07-01 21:30:00</startTime>
+            <xjavaID>deptWarnReportService</xjavaID>
+            <methodName>saveDatas</methodName>
+            <desc>每晚21点出预警数据到数据库</desc>
+            <initExecute>false</initExecute>
+        </job>
+
+		<!-- 添加Job任务用addJob。call(startUp)只用调用一次就可以 -->
+		<jobs id="JOBS" this="JOBS">
+			<addJob ref="JOB_saveDelayingExamDatas" />
+			<addJob ref="JOB_createWarnData" />
+ 			<call name="startup" />
+		</jobs>
+
+	</xconfig>
+
+</config>

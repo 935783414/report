@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+	<!-- 将该配置文件放到WEB-INF\db\report下 -->
+	<!-- 该配置文件为操作数据库sql语句定义，id为调用标识 -->
+	<!-- DSG_brp替换成自己配置的数据库组 -->
+	<!-- 
+	startup.Config.xml中添加
+	<item> 
+				<value>db/report/db.excacess.xml</value>
+	</item>
+	-->
+	<import name="sqls"            class="java.util.ArrayList" />
+	<import name="sql"             class="org.hy.common.xml.XSQL" />
+
+
+
+    <!--  report-异常出入记录模块的相关SQL -->
+	<sqls>
+
+		<!-- 非注册者的：新增操作日志信息 -->
+		<sql id="XSQL_report_Excacess_QUERYLIST">
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+				<![CDATA[
+					  SELECT  
+							  basePerName basepername
+							  ,dept dept
+							  ,basePerID baseperid
+							  ,baseRoleName baserolename
+							  ,cdate cdate
+							  ,inCnt incnt
+							  ,outCnt outcnt
+							  ,halfOuttime halfouttime
+							  ,halfIntime halfintime
+                      	FROM  dbo.wzyb_attendace_detail
+				]]>
+			</content>
+			
+			<result>
+				<row>com.fms.report.model.Excacess</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+			
+		</sql>
+		
+		
+		<!-- 非注册者的：新增操作日志信息 -->
+		<sql id="XSQL_report_Excacess_QueryList_Count">
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+			<!--count改成某个字段效率高-->
+				<![CDATA[
+					  
+					  SELECT  count(*) countExcacess
+                      	FROM  dbo.wzyb_attendace_detail
+                       WHERE  1=1  
+							  <[ AND  basePerName = ':basepername' ]>
+							  <[ AND  dept = ':dept' ]>
+							  <[ AND  basePerID = ':baseperid' ]>
+							  <[ AND  baseRoleName = ':baserolename' ]>
+							  <[ AND  cdate = ':cdate' ]>
+							  <[ AND  inCnt = ':incnt' ]>
+							  <[ AND  outCnt = ':outccnt' ]>
+							  <[ AND  halfOuttime = ':halfouttime' ]>
+							  <[ AND  halfIntime = ':halfintime' ]>
+
+				]]>
+			</content>
+			
+		</sql>
+		
+		<!-- 分页查询片段sql -->
+		<sql id="XSQL_report_Excacess_QueryByPage">
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+				<!-- 注意order by后面的字段可能实际业务表中没有，用实际的排序 -->
+				<![CDATA[
+			          SELECT  row_number() over(order by id) as rownumber,
+							  basePerName basepername
+							  ,dept dept
+							  ,basePerID baseperid
+							  ,baseRoleName baserolename
+							  ,cdate cdate
+							  ,inCnt incnt
+							  ,outCnt outcnt
+							  ,halfOuttime halfouttime
+							  ,halfIntime halfintime
+							  ,halfTime halftime
+
+					    FROM  dbo.wzyb_attendace_detail
+					   WHERE  1=1  
+							  <[ AND  basePerName = ':basepername' ]>
+							  <[ AND  dept = ':dept' ]>
+							  <[ AND  basePerID = ':baseperid' ]>
+							  <[ AND  baseRoleName = ':baserolename' ]>
+							  <[ AND  cdate = ':cdate' ]>
+							  <[ AND  inCnt = ':incnt' ]>
+							  <[ AND  outCnt = ':outcnt' ]>
+							  <[ AND  halfOuttime = ':halfouttime' ]>
+							  <[ AND  halfIntime = ':halfintime' ]>
+
+				]]>
+			</content>
+			
+			<result>
+				<row>com.fms.report.model.Excacess</row>
+				<cfill>setter(colValue)</cfill>
+			</result>
+			
+		</sql>
+		
+		
+		<!-- 提交报价功能06：提交附件信息 -->
+		<sql id="XSQL_report_Excacess_INSERT"> 
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			<!-- 注意自增长id，序列等要删除 -->
+			<content>
+				<![CDATA[
+				INSERT  INTO dbo.wzyb_attendace_detail
+				       (
+							  basePerName
+							  ,dept
+							  ,basePerID
+							  ,baseRoleName
+							  ,cdate
+							  ,inCnt
+							  ,outCnt
+							  ,halfOuttime
+							  ,halfIntime
+							  ,halfTime
+
+				       )
+				VALUES (
+							  ':basepername'
+							  ,':dept'
+							  ,':baseperid'
+							  ,':baserolename'
+							  ,':cdate'
+							  ,':incnt'
+							  ,':outcnt'
+							  ,':halfouttime'
+							  ,':halfintime'
+							  ,':halftime'
+
+				       )
+				]]>
+			</content>
+			
+		</sql>
+		
+		<!-- 通用查询功能 -->
+		<sql id="XSQL_report_Excacess_UPDATE"> 
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+				<![CDATA[
+					  UPDATE  dbo.wzyb_attendace_detail
+					     SET  
+							      basePerName = ':basepername'
+							  <[ ,dept = ':dept' ]>
+							  <[ ,basePerID = ':baseperid' ]>
+							  <[ ,baseRoleName = ':baserolename' ]>
+							  <[ ,cdate = ':cdate' ]>
+							  <[ ,inCnt = ':incnt' ]>
+							  <[ ,outCnt = ':outcnt' ]>
+							  <[ ,halfOuttime = ':halfouttime' ]>
+							  <[ ,halfIntime = ':halfintime' ]>
+						   WHERE  1    = 1
+							     AND  basePerName = ':basepername'
+							  <[ AND  dept = ':dept' ]>
+							  <[ AND  basePerID = ':baseperid' ]>
+							  <[ AND  baseRoleName = ':baserolename' ]>
+							  <[ AND  cdate = ':cdate' ]>
+							  <[ AND  inCnt = ':incnt' ]>
+							  <[ AND  outCnt = ':outcnt' ]>
+							  <[ AND  halfOuttime = ':halfouttime' ]>
+							  <[ AND  halfIntime = ':halfintime' ]>
+							  <[ AND  halfTime = ':halftime' ]>
+
+				]]>
+			</content>
+			
+		</sql>
+		
+				<!-- 通用查询功能 -->
+		<sql id="XSQL_report_Excacess_DELETE"> 
+		
+			<dataSourceGroup ref="DSG_kaoqin" />
+			
+			<content>
+				<![CDATA[
+					   DELETE from dbo.wzyb_attendace_detail
+					   WHERE  1    = 1 
+							     AND  basePerName = ':basepername'
+							  <[ AND  dept = ':dept' ]>
+							  <[ AND  basePerID = ':baseperid' ]>
+							  <[ AND  baseRoleName = ':baserolename' ]>
+							  <[ AND  cdate = ':cdate' ]>
+							  <[ AND  inCnt = ':incnt' ]>
+							  <[ AND  outCnt = ':outcnt' ]>
+							  <[ AND  halfOuttime = ':halfouttime' ]>
+							  <[ AND  halfIntime = ':halfintime' ]>
+							  <[ AND  halfTime = ':halftime' ]>
+
+				]]>
+			</content>
+			
+		</sql>
+	</sqls>
+	
+</config>

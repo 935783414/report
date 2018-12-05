@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+	<!-- 将该配置文件放到WEB-INF\api\${system}下 -->
+	<!-- 将该配置文件为一类业务接口错误编码定义请按照实例和错误编码规范自定义编码 -->
+	<import name="xconfig"         class="java.util.ArrayList" />
+	<import name="I18N"            class="org.hy.common.I18N" />
+	<import name="iText"           class="org.hy.common.app.Param" />
+	<import name="errors"          class="java.util.Hashtable" />
+	<import name="error"           class="com.fms.platform.msg.MsgErrorResponse" />
+	
+	
+	
+	<!-- ${system}-${template}模块相关的接口错误 -->
+	<xconfig>
+	
+		<!-- 初始化国际化语言信息：中文 -->
+		<I18N id="I18N_Error" this="I18N_Error">
+			<language>cn</language>
+			<!-- TODO 自定义错误编码 -->
+			<iText>
+				<name>130101A001</name>
+				<value>记录日志：消息体为空或消息体格式异常</value>
+			</iText>
+			
+			
+			
+		</I18N>
+		
+		
+		
+		<!-- 初始化国际化语言信息：英文 -->
+		<I18N id="I18N_Error" this="I18N_Error">
+			<language>en</language>
+			
+		</I18N>
+		
+	</xconfig>
+	
+</config>
